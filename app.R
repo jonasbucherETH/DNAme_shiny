@@ -33,6 +33,9 @@ library("ezRun")
 
 # JB libraries
 library("dmrseq")
+library("rGREAT")
+library("circlize")
+library("GetoptLong")
 
 # console.error = function () {
 #   require("system").stderr.write(Array.prototype.join.call(arguments, ' ') + '\n');

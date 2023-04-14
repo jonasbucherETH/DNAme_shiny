@@ -40,21 +40,41 @@ tabItem(
     ), # close parameters column
     column(
       width = 6,
-      box(
-        title = "volcanoPlot",
-        width = NULL,
-        solidHeader = TRUE,
-        status = "primary",
-        collapsible = FALSE,
-        collapsed = FALSE,
-        
-        plotOutput(
-          outputId = "volcanoPlot",
-          inline = F,
-          width = "100%"
-        )
-      ) # close box 
+      tabBox(
+        title = NULL,
+        width = 12,
+        tabPanel(
+          title = "Volcano Plot",
+          width = NULL,
+          solidHeader = TRUE,
+          status = "primary",
+          # collapsible = FALSE,
+          # collapsed = FALSE,
+          
+          plotOutput(
+            outputId = "volcanoPlot",
+            inline = F,
+            # width = "100%",
+            height = "auto"
+          )  
+        ), # close tabPanel volcano
+        tabPanel(
+          title = "Region-Gene Associations Plot",
+          width = NULL,
+          solidHeader = TRUE,
+          status = "primary",
+          # collapsible = FALSE,
+          # collapsed = FALSE,
+          
+          plotOutput(
+            outputId = "associationsPlot",
+            inline = F,
+            width = "100%"
+          )  
+        ) # close tabPanel associations
+      ) # close tabBox 
     ), # close plot column
+    
     column(
       width = 4,
       box(
@@ -64,8 +84,8 @@ tabItem(
         status = "primary",
         collapsible = FALSE,
         collapsed = FALSE,
-        
-        DT::dataTableOutput("mytable")
+        DT::dataTableOutput(
+          outputId = "enrichmentTable")
       ) # close box 
     ), # close Enrichment table column
     
