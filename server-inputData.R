@@ -14,12 +14,15 @@ inputDataReactive <- reactive({
   bsseq <- readRDS(bsseqFilePath)
   bsseqFiltered <- readRDS(bsseqFilteredFilePath)
   
-  ##### test data rGEAT
-  dataDirGreat <- "~/data/great"
+  ##### test data great
+  # generated from bash script
+  dataDirGreat <- "~/data/great/mm"
   greatResultFilePath <- file.path(dataDirGreat, "greatResult.rds")
   enrichmentTableFilePath <- file.path(dataDirGreat, "enrichmentTable.rds")
+  geneSetsAllPath <- file.path(dataDirGreat, "geneSetsAll.rds")
   greatResult <- readRDS(greatResultFilePath)
   enrichmentTable <- readRDS(enrichmentTableFilePath)
+  geneSetsAll <- readRDS(geneSetsAllPath)
 
   return(list(
     "dmRegions" = dmRegions,

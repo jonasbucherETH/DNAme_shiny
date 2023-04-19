@@ -65,12 +65,21 @@ tabItem(
           status = "primary",
           # collapsible = FALSE,
           # collapsed = FALSE,
+          selectInput(
+            inputId = "selectselectTermID",
+            label = "Select term",
+            choices = "",
+            selected = ""
+          ),
           
-          plotOutput(
-            outputId = "associationsPlot",
-            inline = F,
-            width = "100%"
-          )  
+          htmlOutput(outputId = "enrichment_table"),
+          
+          # plotOutput(
+          #   outputId = "associationsPlot",
+          #   inline = F,
+          #   width = "100%"
+          # )  
+          
         ) # close tabPanel associations
       ) # close tabBox 
     ), # close plot column

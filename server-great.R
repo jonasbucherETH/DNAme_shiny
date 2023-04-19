@@ -2,7 +2,9 @@ observe({
   # dmRegions <- inputDataReactive()$dmRegions
   # significantRegions <- inputDataReactive()$significantRegions
   greatResult <- inputDataReactive()$greatResult
-  # enrichmentTable <- inputDataReactive()$enrichmentTable
+  enrichmentTable <- inputDataReactive()$enrichmentTable
+  
+  table <- enrichmentTable
   
   # testCovariate <- "Treatment"
   
@@ -19,7 +21,7 @@ observe({
       
       min_region_hits <- 5
       # min_region_hits <- input$min_region_hits
-      table <- getEnrichmentTable(greatResult, min_region_hits)
+      # table <- getEnrichmentTable(greatResult, min_region_hits)
       genome_fraction <- table$genome_fraction
       observed_region_hits <- table$observed_region_hits
       fold_enrichment <- table$fold_enrichment
@@ -123,20 +125,41 @@ observe({
          session$clientData$output_volcanoPlot_width * 0.8
        }
        )
+    
+    }) # close Event number 1
        
-       output$enrichmentTable = DT::renderDataTable({
-         table[, c("description", "observed_region_hits", "fold_enrichment", "p_value")]
-       })
-       
-       associationsPlot <- plotRegionGeneAssociations(greatResult, term_id = NULL, which_plot = 1:3)
-       
-       output$associationsPlot <- renderPlot({
-         associationsPlot
-       })
+   output$enrichmentTable = DT::renderDataTable({
+     table[, c("description", "observed_region_hits", "fold_enrichment", "p_value")]
+   })
+   
+   
+   observeEvent(input$selectTermID, {
+     term = input$selectTermID
+     
+     tb = getRegionGeneAssociations(object, term_id = term)
+     tb = as.data.frame(tb)
+     colnames(tb) = c("Chromosome", "Start", "End", "Width", "Strand", "Annotated Genes", "Distance to TSSs")
+     tb = tb[, -5]
+     
+     showModal(modalDialog(
+       title = qq("Region-gene associations for term: @{term}"),
+       HTML(qq("<pre>plotRegionGeneAssociations(@{obj_name}, term_id = '@{term}')</pre>")),
+       plotOutput(outputId = "selectTermID_plot", width = "1000px", height= "400px"),
+       hr(),
+       HTML(qq("<pre>getRegionGeneAssociations(@{obj_name}, term_id = '@{term}')</pre>")),
+       renderDT(datatable(tb, escape = FALSE, rownames = FALSE, selection = 'none', 
+                          options = list(searching = FALSE))),
+       easyClose = TRUE,
+       size = "l"
+     ))
+   })
+   
+   associationsPlot <- plotRegionGeneAssociations(greatResult, term_id = NULL, which_plot = 1:3)
+   
+   output$associationsPlot <- renderPlot({
+     associationsPlot
+   })
                    
-                   
-      }
-      ) # close Event number 1
       
 }) # close observe
   
