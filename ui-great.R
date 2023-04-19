@@ -66,7 +66,7 @@ tabItem(
           # collapsible = FALSE,
           # collapsed = FALSE,
           selectInput(
-            inputId = "selectselectTermID",
+            inputId = "selectTermID",
             label = "Select term",
             choices = "",
             selected = ""
@@ -83,9 +83,10 @@ tabItem(
         ) # close tabPanel associations
       ) # close tabBox 
     ), # close plot column
-    
+  ), # close fluidRow 1
+  fluidRow( # fluidRow 2
     column(
-      width = 4,
+      width = 12,
       box(
         title = "Enrichment table",
         width = NULL,
@@ -93,11 +94,22 @@ tabItem(
         status = "primary",
         collapsible = FALSE,
         collapsed = FALSE,
+        # Create a checkbox group for selecting columns to display
+        fluidRow(
+          column(12, h3("Columns to Display:")),
+          column(6, radioButtons("columns_to_display1", 
+                                 label = NULL, 
+                                 choices = NULL, 
+                                 selected = NULL)),
+          column(6, radioButtons("columns_to_display2", 
+                                 label = NULL, 
+                                 choices = NULL, 
+                                 selected = NULL))
+        ),
         DT::dataTableOutput(
           outputId = "enrichmentTable")
       ) # close box 
     ), # close Enrichment table column
-    
-  ) # close fluidRow
+  ) # close fluidRow 2
 ) # close tabItem
 

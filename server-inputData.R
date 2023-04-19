@@ -20,17 +20,20 @@ inputDataReactive <- reactive({
   greatResultFilePath <- file.path(dataDirGreat, "greatResult.rds")
   enrichmentTableFilePath <- file.path(dataDirGreat, "enrichmentTable.rds")
   geneSetsAllPath <- file.path(dataDirGreat, "geneSetsAll.rds")
+  regionGeneAssociationsPath <- file.path(dataDirGreat, "regionGeneAssociations.rds")
   greatResult <- readRDS(greatResultFilePath)
   enrichmentTable <- readRDS(enrichmentTableFilePath)
   geneSetsAll <- readRDS(geneSetsAllPath)
-
+  regionGeneAssociations <- readRDS(regionGeneAssociationsPath)
+  
   return(list(
     "dmRegions" = dmRegions,
     "significantRegions" = significantRegions,
     "bsseq" = bsseq,
     "bsseqFiltered" = bsseqFiltered,
     "greatResult" = greatResult,
-    "enrichmentTable" = enrichmentTable
+    "enrichmentTable" = enrichmentTable,
+    "regionGeneAssociations" = regionGeneAssociations
     )
   )
 })

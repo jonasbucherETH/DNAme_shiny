@@ -3,10 +3,30 @@ observe({
   # significantRegions <- inputDataReactive()$significantRegions
   greatResult <- inputDataReactive()$greatResult
   enrichmentTable <- inputDataReactive()$enrichmentTable
-  
   table <- enrichmentTable
+  regionGeneAssociations <- inputDataReactive()$regionGeneAssociations
   
-  # testCovariate <- "Treatment"
+  nHalf <- ceiling(ncol(enrichmentTable)/2)
+  
+  cat(colnames(enrichmentTable)[1:nHalf])
+  
+  updateRadioButtons(
+    session = session,
+    inputId = "columns_to_display1",
+    choiceNames = colnames(enrichmentTable)[1:nHalf],
+    choiceValues = colnames(enrichmentTable)[1:nHalf],
+    # choices = colnames(enrichmentTable)[1:nHalf],
+    selected = colnames(enrichmentTable)[c(1,2,5,6)]
+  )
+  
+  updateRadioButtons(
+    session = session,
+    inputId = "columns_to_display2",
+    choiceNames = colnames(enrichmentTable)[(nHalf+1):ncol(enrichmentTable)],
+    choiceValues = colnames(enrichmentTable)[(nHalf+1):ncol(enrichmentTable)],
+    # choices = colnames(enrichmentTable)[(nHalf+1):ncol(enrichmentTable)],
+    selected = character(0) # To start with no items selected
+  )
   
   observeEvent( # Event number 1
     {
@@ -128,37 +148,78 @@ observe({
     
     }) # close Event number 1
        
-   output$enrichmentTable = DT::renderDataTable({
-     table[, c("description", "observed_region_hits", "fold_enrichment", "p_value")]
-   })
+   # output$enrichmentTable = DT::renderDataTable({
+   #   table[, c("description", "observed_region_hits", "fold_enrichment", "p_value")]
+   # })
+   
+   # Define the "enrichmentTable" datatable
+  output$enrichmentTable <- renderDataTable({
+    # Select the columns to display based on user input
+    selected_columns <- c(input$columns_to_display1, input$columns_to_display2)
+    DT::datatable(
+      enrichmentTable[, selected_columns, drop = FALSE],
+      # Allow the user to select rows in the table
+      selection = "single",
+      # Set an ID for the table
+      rownames = FALSE,
+      # Specify the columns to display in the table
+      options = list(
+        dom = 't',
+        pageLength = 10
+      )
+    )
+  })
+   
+   # # React to the user's row selection
+   # selected_row <- reactive({
+   #   # Get the index of the selected row
+   #   input$enrichmentTable_rows_selected
+   # })
+
+   # React to the user's row selection using observeEvent
+  observeEvent( # Event number 2
+    {
+      input$enrichmentTable_rows_selected
+    },
+    ignoreInit = F, 
+    ignoreNULL = T, 
+    {
+      # Get the index of the selected row
+      selected_row <- input$enrichmentTable_rows_selected
+      # Use the selected row as an input for some other action (e.g., printing the selected row index)
+      print(selected_row)
+      regionGeneAssociations <- getRegionGeneAssociations(object, term_id = NULL, by_middle_points = FALSE,
+                               use_symbols = TRUE)
+      
+      associationsPlot <- plotRegionGeneAssociations(greatResult, term_id = NULL, which_plot = 1:3)
+      
+      output$associationsPlot <- renderPlot({
+        associationsPlot
+      })
+    }) # close Event number 2
    
    
-   observeEvent(input$selectTermID, {
-     term = input$selectTermID
-     
-     tb = getRegionGeneAssociations(object, term_id = term)
-     tb = as.data.frame(tb)
-     colnames(tb) = c("Chromosome", "Start", "End", "Width", "Strand", "Annotated Genes", "Distance to TSSs")
-     tb = tb[, -5]
-     
-     showModal(modalDialog(
-       title = qq("Region-gene associations for term: @{term}"),
-       HTML(qq("<pre>plotRegionGeneAssociations(@{obj_name}, term_id = '@{term}')</pre>")),
-       plotOutput(outputId = "selectTermID_plot", width = "1000px", height= "400px"),
-       hr(),
-       HTML(qq("<pre>getRegionGeneAssociations(@{obj_name}, term_id = '@{term}')</pre>")),
-       renderDT(datatable(tb, escape = FALSE, rownames = FALSE, selection = 'none', 
-                          options = list(searching = FALSE))),
-       easyClose = TRUE,
-       size = "l"
-     ))
-   })
+   # observeEvent(input$selectTermID, {
+   #   term = input$selectTermID
+   #   
+   #   tb = getRegionGeneAssociations(object, term_id = term)
+   #   tb = as.data.frame(tb)
+   #   colnames(tb) = c("Chromosome", "Start", "End", "Width", "Strand", "Annotated Genes", "Distance to TSSs")
+   #   tb = tb[, -5]
+   #   
+   #   showModal(modalDialog(
+   #     title = qq("Region-gene associations for term: @{term}"),
+   #     HTML(qq("<pre>plotRegionGeneAssociations(@{obj_name}, term_id = '@{term}')</pre>")),
+   #     plotOutput(outputId = "selectTermID_plot", width = "1000px", height= "400px"),
+   #     hr(),
+   #     HTML(qq("<pre>getRegionGeneAssociations(@{obj_name}, term_id = '@{term}')</pre>")),
+   #     renderDT(datatable(tb, escape = FALSE, rownames = FALSE, selection = 'none', 
+   #                        options = list(searching = FALSE))),
+   #     easyClose = TRUE,
+   #     size = "l"
+   #   ))
+   # })
    
-   associationsPlot <- plotRegionGeneAssociations(greatResult, term_id = NULL, which_plot = 1:3)
-   
-   output$associationsPlot <- renderPlot({
-     associationsPlot
-   })
                    
       
 }) # close observe
