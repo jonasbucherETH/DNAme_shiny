@@ -22,15 +22,15 @@ tabItem(
           choices = c("p_value", "p_adjust"),
           selected = "p_value"
         ),
-        numericInput(
-          inputId = "min_region_hits",
-          label = "Minimum amount of region hits for inclusion",
-          value = 5,
-          min = 1,
-          max = 100,
-          step = 1,
-          width = NULL
-        ),
+        # numericInput(
+        #   inputId = "min_region_hits",
+        #   label = "Minimum amount of region hits for inclusion",
+        #   value = 5,
+        #   min = 1,
+        #   max = 100,
+        #   step = 1,
+        #   width = NULL
+        # ),
         textInput(
           inputId = "titleVolcanoPlot",
           label = "Plot title",
@@ -39,10 +39,21 @@ tabItem(
       ) # close box 
     ), # close parameters column
     column(
-      width = 6,
+      width = 9,
       tabBox(
         title = NULL,
         width = 12,
+        # sidebar = boxSidebar(
+        #   id = "boxSidebar",
+        #   background = "#808080",
+        #   width = "50%",
+        #   selectInput(
+        #     inputId = "selectCollection",
+        #     label = "Select collection to display",
+        #     choices = c("BP", "CC", "MF"),
+        #     selected = "BP"
+        #   )
+        # ),
         tabPanel(
           title = "Volcano Plot",
           width = NULL,
@@ -51,7 +62,7 @@ tabItem(
           # collapsible = FALSE,
           # collapsed = FALSE,
           
-          plotOutput(
+          plotlyOutput(
             outputId = "volcanoPlot",
             inline = F,
             # width = "100%",
@@ -65,22 +76,38 @@ tabItem(
           status = "primary",
           # collapsible = FALSE,
           # collapsed = FALSE,
-          selectInput(
-            inputId = "selectTermID",
-            label = "Select term",
-            choices = "",
-            selected = ""
-          ),
+          # selectInput(
+          #   inputId = "selectTermID",
+          #   label = "Select term",
+          #   choices = "",
+          #   selected = ""
+          # ),
           
-          htmlOutput(outputId = "enrichment_table"),
+          # htmlOutput(outputId = "enrichment_table"),
           
-          # plotOutput(
-          #   outputId = "associationsPlot",
-          #   inline = F,
-          #   width = "100%"
-          # )  
+          plotOutput(
+            outputId = "associationsPlots"
+            # inline = F
+            # width = "100%"
+          )
           
-        ) # close tabPanel associations
+        ), # close tabPanel associations
+        tabPanel(
+          title = "Dot Plot",
+          width = NULL,
+          solidHeader = TRUE,
+          status = "primary",
+          # collapsible = FALSE,
+          # collapsed = FALSE,
+          
+          plotOutput(
+            outputId = "dotPlot",
+            inline = F,
+            # width = "100%",
+            height = "auto"
+          )  
+        ), # close tabPanel volcano
+        
       ) # close tabBox 
     ), # close plot column
   ), # close fluidRow 1
@@ -94,22 +121,21 @@ tabItem(
         status = "primary",
         collapsible = FALSE,
         collapsed = FALSE,
-        # Create a checkbox group for selecting columns to display
-        fluidRow(
-          column(12, h3("Columns to Display:")),
-          column(6, radioButtons("columns_to_display1", 
-                                 label = NULL, 
-                                 choices = NULL, 
-                                 selected = NULL)),
-          column(6, radioButtons("columns_to_display2", 
-                                 label = NULL, 
-                                 choices = NULL, 
-                                 selected = NULL))
+        br(), 
+        checkboxGroupInput("columns_to_display1", 
+            label = NULL, 
+            choiceNames = character(0),
+            choiceValues = character(0),
+            # choices = NULL, 
+            selected = character(0)
         ),
+        br(),
         DT::dataTableOutput(
-          outputId = "enrichmentTable")
+            outputId = "enrichmentTable")
       ) # close box 
-    ), # close Enrichment table column
+    ) # close Enrichment table column
   ) # close fluidRow 2
 ) # close tabItem
+
+
 

@@ -42,6 +42,44 @@ library("BioMartGOGeneSets")
 library("parallel")
 library("AnnotationHub")
 library("GenomicFeatures")
+library("gridExtra")
+library("cowplot")
+# library("shinydashboardPlus")
+library(dplyr)
+library(plyr)
+library(readxl)
+
+breakStrings <- function(x, minSizeForBreak = 20, lb = "\n", nb = 2) {
+  sapply(x, minSizeForBreak = minSizeForBreak, lb = lb, FUN = function(x, minSizeForBreak, lb) {
+    if (nchar(x) <= minSizeForBreak) {
+      return(x)
+    }
+    
+    g <- gregexpr(" ", x)[[1]]
+    if (length(g) == 0) {
+      return(x)
+    }
+    if (length(g) == 1 & all(g == -1)) {
+      return(x)
+    }
+    
+    if (nb == 2) {
+      mid <- nchar(x) / 2
+      mid <- g[order(abs(g - mid))[1]]
+      substr(x, mid, mid) <- lb
+    } else if (nb == 3) {
+      mid1 <- round(nchar(x) / 3)
+      mid2 <- mid1 * 2
+      mid1 <- g[order(abs(g - mid1))[1]]
+      mid2 <- g[order(abs(g - mid2))[1]]
+      substr(x, mid1, mid1) <- lb
+      substr(x, mid2, mid2) <- lb
+    }
+    
+    return(x)
+  })
+}
+
 
 # console.error = function () {
 #   require("system").stderr.write(Array.prototype.join.call(arguments, ' ') + '\n');
@@ -111,6 +149,13 @@ ui <- dashboardPage(
         text = "rGREAT",
         tabName = "tab-great",
         icon = icon("ranking-star")
+        # startExpanded = TRUE,
+        # menuSubItem(
+        #   text = "BP",
+        #   # tabName = "subtab-great-BP",
+        #   tabName = "tab-great",
+        #   icon = NULL,
+        # )
       )
     )
   ),
@@ -122,15 +167,31 @@ ui <- dashboardPage(
     
     tabItems(
       source("ui-DMRseq.R", local = TRUE)$value,
-      source("ui-great.R", local = TRUE)$value
+      source("ui-great.R", local = TRUE)$value,
+      source("ui-methylKit.R", local = TRUE)$value
     )
   )
+  # controlbar = dashboardControlbar(
+  #   id = "controlbar",
+  #   controlbarMenu(
+  #     id = "controlbarMenu",
+  #     controlbarItem(
+  #       "BP",
+  #       "BP selected"
+  #     ),
+  #     controlbarItem(
+  #       "MF",
+  #       "MF selected"
+  #     )
+  #   )
+  # )
 )
 
 server <- function(input, output, session) {
   source("server-inputData.R", local = TRUE)
   source("server-DMRseq.R", local = TRUE)
   source("server-great.R", local = TRUE)
+  source("server-methylKit.R", local = TRUE)
 }
 
 shinyApp(ui = ui, server = server)

@@ -39,7 +39,7 @@ tabItem(
           width = "100%"
         )
       ) # close box 
-    ), # close plot column
+    ) # close plot column
   ) # close fluidRow
 ) # close tabItem
 
