@@ -71,6 +71,34 @@ observe({
   #   }
   # })
   
+  # if("KG" %in% enrichmentTable$collection) {
+    # output$menuItemReactome <- renderMenu({
+    #   menuSubItem(
+    #     text = "Reactome", 
+    #     tabName = "tab-Reactome"
+    #   )
+    # })
+    # output$menuItemKegg <- renderMenu({
+    #   menuSubItem(
+    #     text = "Kegg", 
+    #     tabName = "tab-Kegg"
+    #   )
+    # })
+  # }
+  
+  output$menuItemReactome <- renderMenu({
+    menuSubItem(
+      text = "Reactome", 
+      tabName = "tab-Reactome"
+      )
+  })
+  output$menuItemKegg <- renderMenu({
+    menuSubItem(
+      text = "Kegg", 
+      tabName = "tab-Kegg"
+      )
+  })
+  
   observeEvent( # Event number 1
     {
       # input$min_region_hits

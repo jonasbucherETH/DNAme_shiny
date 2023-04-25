@@ -29,6 +29,7 @@ inputDataReactive <- reactive({
   ##### test data methylKit
   # generated from RStudio
   dataDirMethylKit <- "~/data/MethylKit/doc"
+  methylRaw <- readRDS(file.path(dataDirMethylKit, paste0("methylRaw", ".rds")))
   filteredMethylRaw <- readRDS(file.path(dataDirMethylKit, paste0("filteredMethylRaw", ".rds")))
   normalizedMethylRaw <- readRDS(file.path(dataDirMethylKit, paste0("normalizedMethylRaw", ".rds")))
   methylAll <- readRDS(file.path(dataDirMethylKit, paste0("methylAll", ".rds")))
@@ -51,7 +52,8 @@ inputDataReactive <- reactive({
     "greatResult" = greatResult,
     "enrichmentTable" = enrichmentTable,
     "regionGeneAssociations" = regionGeneAssociations,
-    methylAll = "methylAll"
+    "methylRaw" = methylRaw,
+    "methylAll" = methylAll
     )
   )
 })

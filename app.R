@@ -148,7 +148,34 @@ ui <- dashboardPage(
       menuItem(
         text = "rGREAT",
         tabName = "tab-great",
-        icon = icon("ranking-star")
+        icon = icon("ranking-star"),
+        menuSubItem(
+          text = "Biological Processes",
+          tabName = "tab-great-BP"
+        ),
+        menuSubItem(
+          text = "Cellular Component",
+          tabName = "tab-great-CC"
+        ),
+        menuSubItem(
+          text = "Molecular Function",
+          tabName = "tab-great-MF"
+        ),
+        menuItemOutput("menuItemReactome"),
+        menuItemOutput("menuItemKegg")
+        
+        # menuSubItem(
+        #   text = "Output 1",
+        #   tabName = "out1"
+        # ),
+        # menuSubItem(
+        #   text = "Output 2",
+        #   tabName = "out2"
+        # ),
+        # menuSubItem(
+        #   text = "Output 3",
+        #   tabName = "out3"
+        # ),
         # startExpanded = TRUE,
         # menuSubItem(
         #   text = "BP",

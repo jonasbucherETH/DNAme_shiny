@@ -1,48 +1,48 @@
 tabItem(
   tabName = "tab-great",
   fluidRow( ### NOTE: 1 row has width = 12
+    # column(
+    #   width = 2,
+    #   box(
+    #     title = "Parameters",
+    #     width = NULL,
+    #     solidHeader = TRUE,
+    #     status = "primary",
+    #     collapsible = TRUE,
+    #     collapsed = FALSE,
+    #     selectInput(
+    #       inputId = "xFactorVolcano",
+    #       label = "Select factor for x-axis",
+    #       choices = c("fold_enrichment", "z-score"),
+    #       selected = "fold_enrichment"
+    #     ),
+    #     selectInput(
+    #       inputId = "yFactorVolcano",
+    #       label = "Select factor for y-axis",
+    #       choices = c("p_value", "p_adjust"),
+    #       selected = "p_value"
+    #     ),
+    #     # numericInput(
+    #     #   inputId = "min_region_hits",
+    #     #   label = "Minimum amount of region hits for inclusion",
+    #     #   value = 5,
+    #     #   min = 1,
+    #     #   max = 100,
+    #     #   step = 1,
+    #     #   width = NULL
+    #     # ),
+    #     textInput(
+    #       inputId = "titleVolcanoPlot",
+    #       label = "Plot title",
+    #       value = "Volcano Plot"
+    #     )
+    #   ) # close box
+    # ), # close parameters column
     column(
-      width = 2,
-      box(
-        title = "Parameters",
-        width = NULL,
-        solidHeader = TRUE,
-        status = "primary",
-        collapsible = TRUE,
-        collapsed = FALSE,
-        selectInput(
-          inputId = "xFactorVolcano",
-          label = "Select factor for x-axis",
-          choices = c("fold_enrichment", "z-score"),
-          selected = "fold_enrichment"
-        ),
-        selectInput(
-          inputId = "yFactorVolcano",
-          label = "Select factor for y-axis",
-          choices = c("p_value", "p_adjust"),
-          selected = "p_value"
-        ),
-        # numericInput(
-        #   inputId = "min_region_hits",
-        #   label = "Minimum amount of region hits for inclusion",
-        #   value = 5,
-        #   min = 1,
-        #   max = 100,
-        #   step = 1,
-        #   width = NULL
-        # ),
-        textInput(
-          inputId = "titleVolcanoPlot",
-          label = "Plot title",
-          value = "Volcano Plot"
-        )
-      ) # close box 
-    ), # close parameters column
-    column(
-      width = 9,
+      width = 12,
       tabBox(
         title = NULL,
-        width = 12,
+        width = NULL,
         # sidebar = boxSidebar(
         #   id = "boxSidebar",
         #   background = "#808080",
@@ -61,13 +61,37 @@ tabItem(
           status = "primary",
           # collapsible = FALSE,
           # collapsed = FALSE,
-          
-          plotlyOutput(
-            outputId = "volcanoPlot",
-            inline = F,
-            # width = "100%",
-            height = "auto"
-          )  
+          fluidRow(
+              column(
+                width = 10,
+                plotlyOutput(
+                  outputId = "volcanoPlot",
+                  inline = F,
+                  # width = "100%",
+                  height = "auto"
+                ),
+              ),
+              column(
+                width = 2,
+                selectInput(
+                  inputId = "xFactorVolcano",
+                  label = "Select factor for x-axis",
+                  choices = c("fold_enrichment", "z-score"),
+                  selected = "fold_enrichment"
+                ),
+                selectInput(
+                  inputId = "yFactorVolcano",
+                  label = "Select factor for y-axis",
+                  choices = c("p_value", "p_adjust"),
+                  selected = "p_value"
+                ),
+                textInput(
+                  inputId = "titleVolcanoPlot",
+                  label = "Plot title",
+                  value = "Volcano Plot"
+                )
+              ) # close parameters column
+          ) # close fluidRow within tabPanel
         ), # close tabPanel volcano
         tabPanel(
           title = "Region-Gene Associations Plot",
