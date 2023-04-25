@@ -26,6 +26,23 @@ inputDataReactive <- reactive({
   geneSetsAll <- readRDS(geneSetsAllPath)
   regionGeneAssociations <- readRDS(regionGeneAssociationsPath)
   
+  ##### test data methylKit
+  # generated from RStudio
+  dataDirMethylKit <- "~/data/MethylKit/doc"
+  filteredMethylRaw <- readRDS(file.path(dataDirMethylKit, paste0("filteredMethylRaw", ".rds")))
+  normalizedMethylRaw <- readRDS(file.path(dataDirMethylKit, paste0("normalizedMethylRaw", ".rds")))
+  methylAll <- readRDS(file.path(dataDirMethylKit, paste0("methylAll", ".rds")))
+  clusterDendrogram <- readRDS(file.path(dataDirMethylKit, paste0("clusterDendrogram", ".rds")))
+  batchAssociation <- readRDS(file.path(dataDirMethylKit, paste0("batchAssociation", ".rds")))
+  diffMethLoci <- readRDS(file.path(dataDirMethylKit, paste0("diffMethLoci", ".rds")))
+  diffMeth_25p <- readRDS(file.path(dataDirMethylKit, paste0("diffMeth_25p", ".rds")))
+  diffMethPerChr <- readRDS(file.path(dataDirMethylKit, paste0("diffMethPerChr", ".rds")))
+  diffMeth_covariates <- readRDS(file.path(dataDirMethylKit, paste0("diffMeth_covariates", ".rds")))
+  gene.obj <- readRDS(file.path(dataDirMethylKit, paste0("gene.obj", ".rds")))
+  diffMeth_25p_annotated <- readRDS(file.path(dataDirMethylKit, paste0("diffMeth_25p_annotated", ".rds")))
+  
+
+  
   return(list(
     "dmRegions" = dmRegions,
     "significantRegions" = significantRegions,
@@ -33,7 +50,8 @@ inputDataReactive <- reactive({
     "bsseqFiltered" = bsseqFiltered,
     "greatResult" = greatResult,
     "enrichmentTable" = enrichmentTable,
-    "regionGeneAssociations" = regionGeneAssociations
+    "regionGeneAssociations" = regionGeneAssociations,
+    methylAll = "methylAll"
     )
   )
 })
