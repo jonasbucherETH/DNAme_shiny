@@ -16,15 +16,18 @@ inputDataReactive <- reactive({
   
   ##### test data great
   # generated from bash script
-  dataDirGreat <- "~/data/great/mm"
-  greatResultFilePath <- file.path(dataDirGreat, "greatResult.rds")
-  enrichmentTableFilePath <- file.path(dataDirGreat, "enrichmentTable.rds")
-  geneSetsAllPath <- file.path(dataDirGreat, "geneSetsAll.rds")
-  regionGeneAssociationsPath <- file.path(dataDirGreat, "regionGeneAssociations.rds")
-  greatResult <- readRDS(greatResultFilePath)
-  enrichmentTable <- readRDS(enrichmentTableFilePath)
-  geneSetsAll <- readRDS(geneSetsAllPath)
-  regionGeneAssociations <- readRDS(regionGeneAssociationsPath)
+  dataDirGreat_mm <- "~/data/great/mm"
+  greatResult_BP <- readRDS(file.path(dataDirGreat_mm, paste0("greatResult_BP", ".rds")))
+  greatResult_CC <- readRDS(file.path(dataDirGreat_mm, paste0("greatResult_CC", ".rds")))
+  greatResult_MF <- readRDS(file.path(dataDirGreat_mm, paste0("greatResult_MF", ".rds")))
+  enrichmentTable_BP <- readRDS(file.path(dataDirGreat_mm, paste0("enrichmentTable_BP", ".rds")))
+  enrichmentTable_CC <- readRDS(file.path(dataDirGreat_mm, paste0("enrichmentTable_CC", ".rds")))
+  enrichmentTable_MF <- readRDS(file.path(dataDirGreat_mm, paste0("enrichmentTable_MF", ".rds")))
+  dataDirGreat_ath <- "~/data/great/ath"
+  greatResult_RE <- readRDS(file.path(dataDirGreat_ath, paste0("greatResult_RE", ".rds")))
+  greatResult_KE <- readRDS(file.path(dataDirGreat_ath, paste0("greatResult_KE", ".rds")))
+  enrichmentTable_RE <- readRDS(file.path(dataDirGreat_ath, paste0("enrichmentTable_RE", ".rds")))
+  enrichmentTable_KE <- readRDS(file.path(dataDirGreat_ath, paste0("enrichmentTable_KE", ".rds")))
   
   ##### test data methylKit
   # generated from RStudio
@@ -49,9 +52,16 @@ inputDataReactive <- reactive({
     "significantRegions" = significantRegions,
     "bsseq" = bsseq,
     "bsseqFiltered" = bsseqFiltered,
-    "greatResult" = greatResult,
-    "enrichmentTable" = enrichmentTable,
-    "regionGeneAssociations" = regionGeneAssociations,
+    "greatResult_BP" = greatResult_BP,
+    "greatResult_CC" = greatResult_CC,
+    "greatResult_MF" = greatResult_MF,
+    "enrichmentTable_BP" = enrichmentTable_BP,
+    "enrichmentTable_CC" = enrichmentTable_CC,
+    "enrichmentTable_MF" = enrichmentTable_MF,
+    "greatResult_RE" = greatResult_RE,
+    "greatResult_KE" = greatResult_KE,
+    "enrichmentTable_RE" = enrichmentTable_RE,
+    "enrichmentTable_KE" = enrichmentTable_KE,
     "methylRaw" = methylRaw,
     "methylAll" = methylAll
     )
