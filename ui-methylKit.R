@@ -5,29 +5,34 @@ tabItem(
       width = 12,
       tabBox(
         title = NULL,
-        width = 12,
+        width = 10,
         tabPanel(
-          title = "Basic Statistics",
+          title = "Methylation Statistics",
           width = NULL,
           solidHeader = TRUE,
           status = "primary",
+          plotOutput(
+            outputId = "methylationHistogram",
+            inline = F,
+            # width = "100%",
+            height = "auto"
+          )
           # collapsible = FALSE,
           # collapsed = FALSE,
-          selectInput(
-            inputId = "sample",
-            label = "Select sample to display",
-            choices = character(0),
-            selected = character(0)
-          ),
-          
-          # plotOutput(
-          #   outputId = "methylationHistogram",
-          #   inline = F,
-          #   # width = "100%",
-          #   height = "auto"
-          # )  
-        ), # close tabPanel Basic Statistics
-      ) # close tabBox
+        )
+      ), # close tabPanel
+      box(
+        title = "parameters",
+        width = 2,
+        solidHeader = TRUE,
+        status = "primary",
+        selectInput(
+          inputId = "sample",
+          label = "Select sample to display",
+          choices = character(0),
+          selected = character(0)
+        )
+      )
     ) # close column
   ) # close fluidRow
 ) # close tabItem

@@ -60,13 +60,12 @@ greatUI <- function(id) {
                   inputId = ns("titleVolcanoPlot"),
                   label = "Plot title",
                   value = "Volcano Plot",
-                ),
-                verbatimTextOutput(ns("hover_info"))
+                )
               ) # close parameters column
             ) # close fluidRow within tabPanel
           ), # close tabPanel volcano
           tabPanel( # tabPanel associations
-            title = "Region-Gene Associations Plot",
+            title = "Region-Gene Associations Plots",
             width = NULL,
             solidHeader = TRUE,
             status = "primary",
@@ -81,11 +80,28 @@ greatUI <- function(id) {
             
             # htmlOutput(outputId = "enrichment_table"),
             
-            plotOutput(
-              outputId = ns("associationsPlots")
-              # inline = F
-              # width = "100%"
-            )
+            fluidRow(
+              column(
+                width = 10,
+                plotOutput(
+                  outputId = ns("associationsPlots")
+                  # inline = F
+                  # width = "100%"
+                )
+              ),
+              column(
+                width = 2,
+                selectizeInput(
+                  inputId = ns("selectizeTerm"), 
+                  label = "Select Term for associations", 
+                  choices = character(0), 
+                  selected = character(0), 
+                  multiple = FALSE,
+                  options = NULL
+                ),
+                tags$b("Delete to show all associations")
+              )
+            ) # close fluidRow associations & selectize
             
           ), # close tabPanel associations
           
@@ -102,7 +118,13 @@ greatUI <- function(id) {
               # inline = F
               # width = "100%",
               # height = "auto"
-            )  
+            ),
+            actionButton(
+              inputId = ns("actionButtonDotPlot"), 
+              label = "Generate dot plot with selected terms",
+              icon = NULL, 
+              width = NULL
+            )
           ), # close tabPanel dot plot
           
         ) # close tabBox 
@@ -161,6 +183,16 @@ greatServer <- function(id, greatResult, enrichmentTable) {
       enrichmentTable$description <- breakStrings(enrichmentTable$description)
       
       observe({
+        
+        updateSelectizeInput(
+          session = session,
+          inputId = "selectizeTerm", 
+          label = "Select Term for associations",
+          choices = enrichmentTable$id,
+          selected = "",
+          options = list(),
+          server = FALSE
+        )
         
         # colour palette from deepak
         myPalette <- colorRampPalette(colors = viridis::plasma(n = 7)[c(2, 4, 6)])
@@ -247,8 +279,13 @@ greatServer <- function(id, greatResult, enrichmentTable) {
             }
             
             
-            volcanoPlot <- ggplot(data.frame(x = x[l], y = y[l], observed_region_hits = observed_region_hits[l], genome_fraction = genome_fraction[l], id = enrichmentTable$id[l]), aes(x = x, y = y, text = id))
-            
+            volcanoPlot <- ggplot(data.frame(x = x[l], y = y[l], observed_region_hits = observed_region_hits[l], genome_fraction = genome_fraction[l], 
+                                             id = enrichmentTable$id[l], description = enrichmentTable$description[l], p_value = enrichmentTable$p_value[l],
+                                             fold_enrichment = enrichmentTable$fold_enrichment[l]), aes(x = x, y = y, text = paste(id, description, p_value, fold_enrichment, sep = "<br>")
+                                 ))
+            # paste0("a", "b", sep = "<br>")
+            # sep = "<br>"
+            # text = c(id,description,p_value,fold_enrichment))
             volcanoPlot <- volcanoPlot +
               # geom_point(aes(color = log(observed_region_hits), size = log(genome_fraction))) +
               geom_point(aes(color = observed_region_hits, size = genome_fraction)) +
@@ -305,7 +342,8 @@ greatServer <- function(id, greatResult, enrichmentTable) {
             }
             
             volcanoPlotly <- ggplotly(volcanoPlot,
-                                      tooltip = c("id"),
+                                      tooltip = c("text"),
+                                      # tooltip = c("id","description","p_value","fold_enrichment"),
                                       width = session$clientData$output_volcanoPlot_width,
                                       height = session$clientData$output_volcanoPlot_height,
                                       interactive = F) %>%
@@ -342,24 +380,6 @@ greatServer <- function(id, greatResult, enrichmentTable) {
             
           }) # close Event number 1
         
-        displayed_text <- reactive({
-          req(input$hoverVolcanoPlot)
-          hover <- input$hoverVolcanoPlot
-          dist <- sqrt((hover$x - x)^2 + (hover$y - y)^2)
-          
-          if(min(dist) < 0.3) {
-            enrichmentTable()$id[which.min(dist)]
-          } else {
-            NULL
-          }
-        })
-        
-        output$hover_info <- renderPrint({
-          req(displayed_text())
-        
-          displayed_text()
-        })
-        
         selected_cols <- reactive({
           cols <- c("id", input$columns_to_display1)
           enrichmentTable[, cols, drop = FALSE]
@@ -367,19 +387,12 @@ greatServer <- function(id, greatResult, enrichmentTable) {
         
         # Render the datatable
         output$enrichmentTable <- DT::renderDataTable({
-          
-          # datatable(selected_cols(), rownames = FALSE, selection = "single",
-          #           # callback = JS("function(data) { return '<a href=\"' + data + '\" target=\"_blank\">Link</a>'}"),
-          #           options = list(pageLength = 10, dom = 't', scrollX = TRUE),
-          #           escape = FALSE) %>% formatStyle(
-          #             columns = 'Link', textDecoration = 'underline', fontWeight = 'bold',
-          #             color = 'blue', fontStyle = 'italic', target = "cell")
           dt <- selected_cols()
           dt$id <- createLink(dt$id)
           # dt <- datatable(dt)
           return(dt)
-          
-        }, escape = F, filter = "bottom", selection = "single"
+        # }, escape = F, filter = "bottom", selection = "single"
+        }, escape = F, filter = "bottom", selection = "multiple"
         )
         
         
@@ -392,101 +405,95 @@ greatServer <- function(id, greatResult, enrichmentTable) {
         #### React to the user's row selection using observeEvent
         observeEvent( # Event number 2
           {
-            input$enrichmentTable_rows_selected
+            # input$enrichmentTable_rows_selected
+            input$actionButtonDotPlot
           },
           ignoreInit = F,
           ignoreNULL = F,
           {
             # Get the index of the selected row
-            selected_row <- input$enrichmentTable_rows_selected
+            selected_rows <- input$enrichmentTable_rows_selected
             # Use the selected row as an input for some other action (e.g., printing the selected row index)
             # print(selected_row)
+
+            if(is.null(selected_rows)) {
+              dataDotPlot <- enrichmentTable[1:20, ]
+            } else {
+              dataDotPlot <- enrichmentTable[selected_rows, ]
+            }
+
+            dotPlot <- ggplot(data = dataDotPlot, mapping = aes(
+              x = description,
+              y = fold_enrichment,
+              color = -log10(p_adjust),
+              size = observed_gene_hits
+            )) +
+              geom_point(show.legend = T, alpha = 0.7, stroke = 1.5) +
+              coord_flip(expand = T) +
+              xlab("") +
+              ylab(expression(Log[2] ~ "Fold-change")) +
+              # facet_grid(collection ~ , labeller = label_wrap_gen(width = 12, multi_line = T), scales = "free", space = "free_y") +
+              # facet_grid(collection ~ Comparison, labeller = label_wrap_gen(width = 12, multi_line = T), scales = "free", space = "free_y") +
+              scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 70)) +
+              theme_bw() +
+              theme(axis.text = element_text(color = "black"),
+                    legend.title = element_text(color = "black"),
+                    axis.title = element_text(color = "black", face = "bold")
+              ) + 
+              labs(
+                color = expression(-Log[10] ~ "adjusted" ~ italic(P) ~ " "),
+                size = "Annotated genes"
+              ) +
+              scale_colour_gradientn(
+                colours = myPalette(n = nrow(dataDotPlot)),
+                breaks = c(ceiling(min(-log10(dataDotPlot$p_adjust))), floor(max(-log10(dataDotPlot$p_adjust))))
+              ) +
+              scale_color_gradientn(
+                trans = "log",
+                colors = myPalette(n = nrow(dataDotPlot)),
+                # breaks = c(ceiling(min(log(observed_region_hits))), floor(max(log(observed_region_hits))))) +
+                # breaks = c(min(observed_region_hits), max(observed_region_hits))
+                breaks = waiver()
+              ) +
+              guides(size = guide_legend(reverse=TRUE))
             
+            output$dotPlot <- renderPlot({
+              dotPlot
+            }
+            # , height = function() {
+            #   session$clientData$output_dotPlot_width * 0.8
+            # }
+            )
+        }) # close Event number 2
+        
+        observeEvent( # Event number 2
+          {
+            input$selectizeTerm
+          },
+          ignoreInit = F,
+          ignoreNULL = F,
+          {
+            # Get the index of the selected row
+            selected_term <- input$selectizeTerm
+            # Use the selected row as an input for some other action (e.g., printing the selected row index)
+            # print(selected_term)
             gr_full_len <- greatResult@n_total
             gr_all <- getRegionGeneAssociations(greatResult)
-            # if(selected_row) {
-            if(!is.null(input$enrichmentTable_rows_selected)) {
-              gr_term <- getRegionGeneAssociations(greatResult, enrichmentTable$id[selected_row])
-              term_id <- enrichmentTable$description[selected_row]
-              associationsPlot <- ggplot_great(gr_all, gr_term = gr_term, gr_full_len, term_id = term_id)
-            } else {
-              associationsPlot <- ggplot_great(gr_all, gr_term = NULL, gr_full_len, term_id = NULL)
-            }
             
+            if(selected_term == "") {
+              associationsPlot <- ggplot_great(gr_all, gr_term = NULL, gr_full_len, term_id = NULL)
+            } else {
+              gr_term <- getRegionGeneAssociations(greatResult, selected_term)
+              term_index <- which(enrichmentTable$id == selected_term)
+              term_id <- enrichmentTable$description[term_index]
+              associationsPlot <- ggplot_great(gr_all, gr_term = gr_term, gr_full_len, term_id = term_id)
+            }
+
             output$associationsPlots <- renderPlot({
               # grid.arrange(associationsPlot[[1]], associationsPlot[[2]], associationsPlot[[3]], nrow = 1)
               plot_grid(associationsPlot[[1]], associationsPlot[[2]], associationsPlot[[3]], nrow = 1, aligh = "v", axis = "b")
-              
             })
           }) # close Event number 2
-        
-        
-        # observeEvent(input$selectTermID, {
-        #   term = input$selectTermID
-        #   
-        #   tb = getRegionGeneAssociations(object, term_id = term)
-        #   tb = as.data.frame(tb)
-        #   colnames(tb) = c("Chromosome", "Start", "End", "Width", "Strand", "Annotated Genes", "Distance to TSSs")
-        #   tb = tb[, -5]
-        #   
-        #   showModal(modalDialog(
-        #     title = qq("Region-gene associations for term: @{term}"),
-        #     HTML(qq("<pre>plotRegionGeneAssociations(@{obj_name}, term_id = '@{term}')</pre>")),
-        #     plotOutput(outputId = "selectTermID_plot", width = "1000px", height= "400px"),
-        #     hr(),
-        #     HTML(qq("<pre>getRegionGeneAssociations(@{obj_name}, term_id = '@{term}')</pre>")),
-        #     renderDT(datatable(tb, escape = FALSE, rownames = FALSE, selection = 'none', 
-        #                        options = list(searching = FALSE))),
-        #     easyClose = TRUE,
-        #     size = "l"
-        #   ))
-        # })
-        
-        top20 <- enrichmentTable[1:20, ]
-        
-        dotPlot <- ggplot(data = top20, mapping = aes(
-          x = description,
-          y = fold_enrichment,
-          color = -log10(p_adjust),
-          size = observed_gene_hits
-        )) +
-          geom_point(show.legend = T, alpha = 0.7, stroke = 1.5) +
-          coord_flip(expand = T) +
-          xlab("") +
-          ylab(expression(Log[2] ~ "Fold-change")) +
-          # facet_grid(collection ~ , labeller = label_wrap_gen(width = 12, multi_line = T), scales = "free", space = "free_y") +
-          # facet_grid(collection ~ Comparison, labeller = label_wrap_gen(width = 12, multi_line = T), scales = "free", space = "free_y") +
-          scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 70)) +
-          theme_bw() +
-          theme(axis.text = element_text(color = "black"),
-                legend.title = element_text(color = "black"),
-                axis.title = element_text(color = "black", face = "bold")
-          ) + 
-          labs(
-            color = expression(-Log[10] ~ "adjusted" ~ italic(P) ~ " "),
-            size = "Annotated genes"
-          ) +
-          scale_colour_gradientn(
-            colours = myPalette(n = nrow(top20)),
-            breaks = c(ceiling(min(-log10(top20$p_adjust))), floor(max(-log10(top20$p_adjust))))
-          ) +
-          scale_color_gradientn(
-            trans = "log",
-            colors = myPalette(n = nrow(top20)),
-            # breaks = c(ceiling(min(log(observed_region_hits))), floor(max(log(observed_region_hits))))) +
-            # breaks = c(min(observed_region_hits), max(observed_region_hits))
-            breaks = waiver()
-          ) +
-          guides(size = guide_legend(reverse=TRUE))
-        
-        output$dotPlot <- renderPlot({
-          dotPlot
-        }
-        # , height = function() {
-        #   session$clientData$output_dotPlot_width * 0.8
-        # }
-        )
-        
         
       }) # close observe
       
@@ -583,7 +590,8 @@ ggplot_great = function(gr_all, gr_term = NULL, gr_full_len, term_id = NULL) {
   p1 <- p1 + theme_classic()
   p1 <- p1 + theme(
     axis.title.x = element_text(vjust = -1),
-    axis.text.x = element_text(size = 10, vjust = -1)
+    axis.text.x = element_text(size = 10, vjust = -1),
+    plot.margin = margin(5, 0, 40, 0, "pt")
   )
   ################ 2
   v = cbind(
