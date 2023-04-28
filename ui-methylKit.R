@@ -2,28 +2,49 @@ tabItem(
   tabName = "tab-methylKit",
   fluidRow( ### NOTE: 1 row has width = 12
     column(
-      width = 12,
-      tabBox(
-        title = NULL,
-        width = 10,
+      width = 10,
+      bs4TabCard(
+        width = 12,
+        id = NULL,
+        # title = NULL,
+        maximizable = TRUE,
+        status = "primary",
+        ###
+        solidHeader = T, # solid color background
+        background = NULL, #  background color of the box
         tabPanel(
           title = "Methylation Statistics",
           width = NULL,
           solidHeader = TRUE,
           status = "primary",
-          plotOutput(
-            outputId = "methylationHistogram",
-            inline = F,
-            # width = "100%",
-            height = "auto"
+          fluidRow(
+            column(
+              width = 6,
+              plotOutput(
+                outputId = "methylationHistogram",
+                inline = F,
+                width = "100%"
+                # height = "auto"
+              )
+            ),
+            column(
+              width = 6,
+              plotOutput(
+                outputId = "coverageHistogram",
+                inline = F,
+                width = "100%"
+                # height = "auto"
+              )
+            )
           )
-          # collapsible = FALSE,
-          # collapsed = FALSE,
-        )
-      ), # close tabPanel
+        ) # close tabPanel
+      ), # close tabBox
+    ), # close column
+    column(
+      width = 2,
       box(
         title = "parameters",
-        width = 2,
+        width = NULL,
         solidHeader = TRUE,
         status = "primary",
         selectInput(

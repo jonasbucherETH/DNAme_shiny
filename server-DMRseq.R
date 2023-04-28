@@ -13,6 +13,17 @@ observe({
     ignoreInit = F, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
     ignoreNULL = T, # default = TRUE
     {
+      # waiter_show("waiterEmpiricalDistribution")
+      
+      # waiter_show(
+      #   id = NULL,
+      #   html = spin_1(),
+      #   color = "#333e48",
+      #   logo = "",
+      #   image = "",
+      #   hide_on_render = !is.null(id)
+      # )
+      
       
       ##### ----- Plot distribution of methylation values and coverage (plotEmpiricalDistribution)
       M <- Cov <- group <- wt <- NULL
@@ -21,6 +32,7 @@ observe({
       #   message("No testCovariate specified; plotting each sample separately.")
       #   input$bySample = TRUE
       # }
+      
       bs <- bsseqFiltered
       meth.mat <- getCoverage(bs, type = "M")
       unmeth.mat <- getCoverage(bs, type = "Cov") - meth.mat
@@ -145,11 +157,13 @@ observe({
             xlab("Coverage") + theme_bw()
         }
       }
+      
+      # waiter_hide("waiterEmpiricalDistribution")
+      
       # return(p1)
       output$empiricalDistributionPlot <- renderPlot({
         p1
       })
-      
 
     }
   ) # close Event number 0

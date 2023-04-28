@@ -8,26 +8,85 @@ greatUI <- function(id) {
     fluidRow( ### NOTE: 1 row has width = 12
       column(
         width = 12,
-        tabBox(
-          title = NULL,
-          width = NULL,
-          tabPanel(
-            title = "Volcano Plot",
-            width = NULL,
-            solidHeader = TRUE,
-            status = "primary",
-            # collapsible = FALSE,
-            # collapsed = FALSE,
-            fluidRow(
-              column(
-                width = 10,
-                plotlyOutput(
-                  outputId = ns("volcanoPlot"),
-                  inline = F
-                  # width = "100%",
-                  # height = "auto"
-                )
-              ),
+        # tabsetPanel(
+        bs4TabCard(
+          id = ns("tabBoxGreat"),
+          # id = NULL,
+          # title = NULL,
+          width = 9,
+          maximizable = TRUE,
+          status = "primary",
+          ###
+          solidHeader = T, # solid color background
+          background = NULL, #  background color of the box
+          dropdownMenu = boxDropdown(
+            icon = shiny::icon("wrench"),
+            cardDropdownItem(id = ns("downloadPlotGreat"), href = NULL, icon = shiny::icon("glyphicon-download-alt"))
+          ),
+          sidebar = bs4CardSidebar(
+            id = ns("sidebarGreatPlots"),
+            width = 40, # Sidebar opening width in percentage
+            background = "#333a40",
+            startOpen = FALSE,
+            icon = shiny::icon("gears"),
+            easyClose = TRUE,
+            selectInput(
+              inputId = ns("xFactorVolcano"),
+              label = "Select factor for x-axis",
+              choices = c("fold_enrichment", "z-score"),
+              selected = "fold_enrichment"
+            ),
+            selectInput(
+              inputId = ns("yFactorVolcano"),
+              label = "Select factor for y-axis",
+              choices = c("p_value", "p_adjust"),
+              selected = "p_value"
+            ),
+            textInput(
+              inputId = ns("titleVolcanoPlot"),
+              label = "Plot title",
+              value = "Volcano Plot",
+            )
+          ), # use boxSidebar
+          headerBorder = T,
+          # icon = NULL,
+          ###
+          # selected = "Volcano Plot",
+          selected = NULL,
+          side = "left",
+          type = "tabs",
+          # .list = c(
+            tabPanel(
+              title = "Volcano Plot",
+              # width = NULL,
+              # solidHeader = TRUE,
+              # status = "primary",
+              # collapsible = FALSE,
+              # collapsed = FALSE,
+              plotlyOutput(
+                outputId = ns("volcanoPlot"),
+                inline = F
+                # width = "100%",
+                # height = "auto"
+              )
+              # selectInput(
+              #   inputId = ns("xFactorVolcano"),
+              #   label = "Select factor for x-axis",
+              #   choices = c("fold_enrichment", "z-score"),
+              #   selected = "fold_enrichment"
+              # ),
+              # selectInput(
+              #   inputId = ns("yFactorVolcano"),
+              #   label = "Select factor for y-axis",
+              #   choices = c("p_value", "p_adjust"),
+              #   selected = "p_value"
+              # ),
+              # textInput(
+              #   inputId = ns("titleVolcanoPlot"),
+              #   label = "Plot title",
+              #   value = "Volcano Plot",
+              # )
+            ),
               #   plotOutput(
               #     outputId = ns("volcanoPlot"),
               #     inline = T,
@@ -42,93 +101,62 @@ greatUI <- function(id) {
               #     height = "auto"
               #   )
               # ),
-              column(
-                width = 2,
-                selectInput(
-                  inputId = ns("xFactorVolcano"),
-                  label = "Select factor for x-axis",
-                  choices = c("fold_enrichment", "z-score"),
-                  selected = "fold_enrichment"
-                ),
-                selectInput(
-                  inputId = ns("yFactorVolcano"),
-                  label = "Select factor for y-axis",
-                  choices = c("p_value", "p_adjust"),
-                  selected = "p_value"
-                ),
-                textInput(
-                  inputId = ns("titleVolcanoPlot"),
-                  label = "Plot title",
-                  value = "Volcano Plot",
-                )
-              ) # close parameters column
-            ) # close fluidRow within tabPanel
-          ), # close tabPanel volcano
-          tabPanel( # tabPanel associations
-            title = "Region-Gene Associations Plots",
-            width = NULL,
-            solidHeader = TRUE,
-            status = "primary",
-            # collapsible = FALSE,
-            # collapsed = FALSE,
-            # selectInput(
-            #   inputId = "selectTermID",
-            #   label = "Select term",
-            #   choices = "",
-            #   selected = ""
-            # ),
-            
-            # htmlOutput(outputId = "enrichment_table"),
-            
-            fluidRow(
-              column(
-                width = 10,
-                plotOutput(
-                  outputId = ns("associationsPlots")
-                  # inline = F
-                  # width = "100%"
-                )
+            tabPanel( # tabPanel associations
+              title = "Region-Gene Associations Plots",
+              width = NULL,
+              solidHeader = TRUE,
+              status = "primary",
+              # collapsible = FALSE,
+              # collapsed = FALSE,
+              # selectInput(
+              #   inputId = "selectTermID",
+              #   label = "Select term",
+              #   choices = "",
+              #   selected = ""
+              # ),
+              
+              # htmlOutput(outputId = "enrichment_table"),
+              plotOutput(
+                outputId = ns("associationsPlots")
+                # inline = F
+                # width = "100%"
               ),
-              column(
-                width = 2,
-                selectizeInput(
-                  inputId = ns("selectizeTerm"), 
-                  label = "Select Term for associations", 
-                  choices = character(0), 
-                  selected = character(0), 
-                  multiple = FALSE,
-                  options = NULL
-                ),
-                tags$b("Delete to show all associations")
-              )
-            ) # close fluidRow associations & selectize
-            
-          ), # close tabPanel associations
+              selectizeInput(
+                inputId = ns("selectizeTerm"), 
+                label = "Select Term for associations", 
+                choices = character(0), 
+                selected = character(0), 
+                multiple = FALSE,
+                options = NULL
+              ),
+              tags$b("Delete to show all associations")
+            ), # close tabPanel associations
           
-          tabPanel( # tabPanel dot plot
-            title = "Dot Plot",
-            width = NULL,
-            solidHeader = TRUE,
-            status = "primary",
-            # collapsible = FALSE,
-            # collapsed = FALSE,
-            
-            plotOutput(
-              outputId = ns("dotPlot")
-              # inline = F
-              # width = "100%",
-              # height = "auto"
-            ),
-            actionButton(
-              inputId = ns("actionButtonDotPlot"), 
-              label = "Generate dot plot with selected terms",
-              icon = NULL, 
-              width = NULL
-            )
-          ), # close tabPanel dot plot
+            tabPanel( # tabPanel dot plot
+              title = "Dot Plot",
+              width = NULL,
+              solidHeader = TRUE,
+              status = "primary",
+              # collapsible = FALSE,
+              # collapsed = FALSE,
+              
+              plotOutput(
+                outputId = ns("dotPlot")
+                # inline = F
+                # width = "100%",
+                # height = "auto"
+              ),
+              actionButton(
+                inputId = ns("actionButtonDotPlot"), 
+                label = "Generate dot plot with selected terms",
+                icon = NULL, 
+                width = NULL
+              )
+            ) # close tabPanel dot plot
+          # ) # close .list
           
         ) # close tabBox 
-      ), # close plot column
+      ) # close plot column
     ), # close fluidRow 1
     fluidRow( # fluidRow 2
       column(

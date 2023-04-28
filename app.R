@@ -14,7 +14,7 @@ library("DT")
 # library("writexl")
 # library("circlize")
 # library("GO.db")
-library("shinydashboard")
+# library("shinydashboard")
 # library("shinyBS")
 # library("pixiedust")
 library("ezRun")
@@ -45,9 +45,13 @@ library("GenomicFeatures")
 library("gridExtra")
 library("cowplot")
 # library("shinydashboardPlus")
-library(dplyr)
-library(plyr)
-library(readxl)
+library("bs4Dash")
+library("dplyr")
+library("plyr")
+library("readxl")
+library("methylKit")
+library("shinyWidgets")
+
 
 # console.error = function () {
 #   require("system").stderr.write(Array.prototype.join.call(arguments, ' ') + '\n');
@@ -76,10 +80,12 @@ source("output_module.R")
 
 
 ui <- dashboardPage(
-  skin = "black",
-  dashboardHeader(
-    title = "DNAme",
-    titleWidth = 200
+  # skin = "black",
+  fullscreen = T,
+  # help = T,
+  header = dashboardHeader(
+    title = "DNAme"
+    # titleWidth = 200
     # socialButton(
     #   url = "https://github.com/jonasbucherETH",
     #   type = "github"
@@ -109,7 +115,7 @@ ui <- dashboardPage(
     #     style = "padding-top:10px; padding-bottom:5px;"),
     #   class = "dropdown")
   ),
-  dashboardSidebar(
+  sidebar = dashboardSidebar(
     width = 200,
     shinyjs::useShinyjs(),
     sidebarMenu(
@@ -145,7 +151,7 @@ ui <- dashboardPage(
       )
     )
   ),
-  dashboardBody(
+  body = dashboardBody(
     # use_tracking(),
     # tags$head(tags$link(rel = "shortcut icon", href = "sushi.png")),
     # tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "main.css")),
@@ -171,7 +177,9 @@ ui <- dashboardPage(
       ),
       source("ui-methylKit.R", local = TRUE)$value
     )
-  )
+  ),
+  controlbar = dashboardControlbar()
+  
   # controlbar = dashboardControlbar(
   #   id = "controlbar",
   #   controlbarMenu(
