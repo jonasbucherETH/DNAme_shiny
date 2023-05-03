@@ -16,6 +16,13 @@ greatUI <- function(id) {
           width = 9,
           maximizable = TRUE,
           status = "primary",
+          headerBorder = T,
+          # icon = NULL,
+          ###
+          # selected = "Volcano Plot",
+          selected = NULL,
+          side = "left",
+          type = "tabs",
           ###
           solidHeader = T, # solid color background
           background = NULL, #  background color of the box
@@ -47,14 +54,7 @@ greatUI <- function(id) {
               label = "Plot title",
               value = "Volcano Plot",
             )
-          ), # use boxSidebar
-          headerBorder = T,
-          # icon = NULL,
-          ###
-          # selected = "Volcano Plot",
-          selected = NULL,
-          side = "left",
-          type = "tabs",
+          ), # close boxSidebar
           # .list = c(
             tabPanel(
               title = "Volcano Plot",
@@ -169,12 +169,25 @@ greatUI <- function(id) {
           collapsible = FALSE,
           collapsed = FALSE,
           br(), 
-          checkboxGroupInput(ns("columns_to_display1"), 
-                             label = NULL, 
-                             choiceNames = character(0),
-                             choiceValues = character(0),
-                             # choices = NULL, 
-                             selected = character(0)
+          # awesomeCheckboxGroup(ns("columns_to_display1"), 
+          #                    label = NULL, 
+          #                    # choiceNames = character(0),
+          #                    # choiceValues = character(0),
+          #                    choices = character(0),
+          #                    selected = character(0),
+          #                    status = "primary"
+          # ),
+          checkboxGroupButtons(ns("columns_to_display1"), 
+                               label = "Columns to display", 
+                               # choiceNames = character(0),
+                               # choiceValues = character(0),
+                               choices = character(0),
+                               selected = character(0),
+                               checkIcon = list(
+                                 yes = tags$i(class = "fa fa-check-square", 
+                                              style = "color: steelblue"),
+                                 no = tags$i(class = "fa fa-square-o", 
+                                             style = "color: steelblue"))
           ),
           br(),
           DT::dataTableOutput(
@@ -236,16 +249,20 @@ greatServer <- function(id, greatResult, enrichmentTable) {
           sprintf('<a href="http://amigo.geneontology.org/amigo/term/%s" target="_blank" class="btn btn-primary">%s</a>', val, val)
         }
         
-        updateCheckboxGroupInput(
+        # updateCheckboxGroupInput(
+        updateCheckboxGroupButtons(
           session = session,
           inputId = "columns_to_display1",
-          choiceNames = colnames(enrichmentTable)[-1],
-          choiceValues = colnames(enrichmentTable)[-1],
-          # choiceNames = colnames(enrichmentTable)[2:length(enrichmentTable)],
-          # choiceValues = colnames(enrichmentTable)[2:length(enrichmentTable)],
-          # choices = colnames(enrichmentTable)[1:nHalf],
+          # choiceNames = colnames(enrichmentTable)[-1],
+          # choiceValues = colnames(enrichmentTable)[-1],
+          choices = colnames(enrichmentTable)[-1],
           selected = colnames(enrichmentTable)[c(2,5,6,7)],
-          inline = TRUE
+          checkIcon = list(
+            yes = tags$i(class = "fa fa-check-square", 
+                         style = "color: steelblue"),
+            no = tags$i(class = "fa fa-square-o", 
+                        style = "color: steelblue"))
+          # inline = TRUE
         )
         
         output$menuItemReactome <- renderMenu({

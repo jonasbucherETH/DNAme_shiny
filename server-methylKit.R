@@ -1,7 +1,24 @@
 observe({
   methylRaw <- inputDataReactive()$methylRaw
   methylAll <- inputDataReactive()$methylAll
+  # str_end <- rep(paste0("_", sampleIDs), times = 3)
+  # str_sub(colnames(methylAll)[5:length(methylAll)], start = -2, end = -1) <- str_end
   sampleNames <- c("test1","test2","ctrl1","ctrl2")
+  
+  
+  palettesCategorical <- brewer.pal.info[brewer.pal.info$category=="qual" & brewer.pal.info$maxcolors >= length(sampleNames) & brewer.pal.info$colorblind==TRUE, ]
+  # display.brewer.pal(length(sampleNames), "Dark2")
+  # display.brewer.pal(length(sampleNames), "Paired")
+  # display.brewer.pal(length(sampleNames), "Set2")
+  output$colorPalettesPlot <- renderPlot({
+    display.brewer.all(n=length(sampleNames), select=rownames(palettesCategorical), exact.n=TRUE)
+  })
+  
+  updateSelectInput(
+    inputId = "colorPalettePCA",
+    choices = rownames(palettesCategorical),
+    selected = rownames(palettesCategorical)[1]
+  )
   
   updateSelectInput(
     inputId = "sample",
@@ -10,9 +27,241 @@ observe({
     selected = sampleNames[1]
   )
   
-  resultsPCA <- PCASamples(methylAll, obj.return = T)
+  # # use normalized coverage?
+  # methylationMatrixAll <- c()
+  # for(i in seq_along(sampleNames)) {
+  #   
+  #   # data_i <- getData(normalizedMethylRaw[[1]])
+  #   # print(length(data_i[,1]))
+  #   # totalCoverage_i <- sum(data_i$coverage)
+  #   # methylationMatrixAll <- cbind(methylationMatrixAll,
+  #   #     100*data_i$numCs / (data_i$numCs + data_i$numTs)
+  #   # )
+  # }
+  # # methylationMatrixAll <- as.data.frame(methylationMatrixAll)
+  # colnames(methylationMatrixAll) <- sampleNames
+  # 
+  # pcaResult <- prcomp(methylationMatrixAll, retx = T, center = TRUE, scale. = FALSE,
+  #        tol = NULL, rank. = NULL)
+  # 
+  # dataMethylRaw <- getData(methylRaw[[1]])
+  # totalCoverage <- sum(dataMethylRaw$coverage)
+  # methylationMatrix <- data.frame(
+  #   "Percent_Methylation" = 100*dataMethylRaw$numCs / (dataMethylRaw$numCs + dataMethylRaw$numTs),
+  #   "Coverage" = dataMethylRaw$coverage
+  # )
   
-  observeEvent( # Event number 1
+  resultsPCA <- PCASamples(methylAll, obj.return = T) # uses prcomp using percent methylation matrix as input
+  # resultsPCA$x # positions of samples
+  # resultsPCA$sdev
+  # resultsPCA$rotation # PCs 1-4
+
+  # pcaTableMeth <- data.frame(groupingVariables, pcaResults$rotation, stringsAsFactors = FALSE, row.names = rownames(datasetPCA))
+  pcaTableMeth <- data.frame(resultsPCA$x, stringsAsFactors = FALSE)
+  
+  pcaVarprop <- tibble(PC = paste0("PC", factor(1:length(resultsPCA$sdev))), variance = (resultsPCA$sdev)^2) %>% 
+    # mutate(pct = format(variance/sum(variance)*100, digits = 2)) %>%
+    mutate(pct = variance/sum(variance)*100) %>%
+    mutate(pct_cum = cumsum(pct))
+  # tabVarpropMeth <- pcaVarprop
+  # for (i in 1:nPC) {
+  #   colnames(pcaTable)[i + nGrouping] <- paste0("PC", i)
+  # }
+  
+  updateSelectInput(
+    session = session, 
+    "pickFactor1PCA", 
+    choices = colnames(resultsPCA$rotation), 
+    selected = colnames(resultsPCA$rotation)[1]
+  )
+  
+  updateSelectInput(
+    session = session, 
+    "pickFactor2PCA", 
+    choices = colnames(resultsPCA$rotation), 
+    selected = colnames(resultsPCA$rotation)[2]
+  )
+  
+  updateSelectizeInput( # maybe this is not needed (always give all options)
+    # session = getDefaultReactiveDomain(),
+    session = session,
+    inputId = "selectizeColoursPCA",
+    choices = sampleNames,
+    selected = sampleNames,
+    # selected = character(0),
+    server = TRUE
+    # server = TRUE
+  )
+  
+  output$colourPanelPCA <- renderUI({
+    levPCA <- sort(unique(input$selectizeColoursPCA)) # sorting so that "things" are unambigious
+    # levPCA <- sampleNames
+    # colourValuesPCA <- gg_fill_hue(length(levPCA))
+    colsPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+    
+    # New IDs "colX1" so that it partly coincide with input$selectizePCA...
+    lapply(seq_along(levPCA), function(i) {
+      colourInput(inputId = paste0("colPCA_", levPCA[i]),
+                  label = paste0("Choose colour for ", levPCA[i]),
+                  value = colsPCA[i]
+      )
+    })
+  })
+  
+  # observeEvent( # Event sidebar; tab change
+  #   {
+  #     input$methylKitTabCard
+  #   },
+  #   ignoreInit = F, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
+  #   ignoreNULL = T, # default = TRUE
+  #   {
+  #     # print(input$methylKitTabCard) # -> titles of tabPanels
+  #     # [1] "PCA of samples"
+  #     # [1] "Methylation Statistics"
+  #     if(input$methylKitTabCard == "PCA of samples"){
+  #       # updatebs4CardSidebar(
+  #       #   id = "sidebarMethylKit", 
+  #       #   session = session,
+  #       #   )
+  #       output$sidebarUI <- renderUI({
+  #         tagList(
+  #           sliderInput("n", "N", 1, 1000, 500),
+  #           textInput("label", "Label")
+  #         )
+  #       })
+  #     }
+  #     
+  #     # updatebs4CardSidebar(id = "sidebarMethylKit", session = shiny::getDefaultReactiveDomain())
+  #   }
+  # )
+  
+  # observeEvent( # Event manual colours PCA
+  #   {
+  #     input$applyManualColoursPCA
+  #   },
+  #   ignoreInit = T, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
+  #   ignoreNULL = T, # default = TRUE
+  #   {
+      
+  
+  observeEvent( # Event PCA
+    {
+      # input$sampleLabelsPCA
+      input$pickFactor1PCA
+      input$pickFactor2PCA
+      input$colorPalettePCA
+      input$manualColoursPCA
+      input$sampleLabelsPCA
+      input$textSizePCA
+      input$pointSizePCA
+      input$pcaTitle
+      #input$selectThemePCA
+    },
+    ignoreInit = T, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
+    ignoreNULL = T, # default = TRUE
+    {
+      
+      # manualColoursPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizeColoursPCA), collapse = ", "), ")")
+      # manualColoursPCA <- eval(parse(text = manualColoursPCA))
+      
+      # paletteColoursPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+      
+      colourValuesPCA <- reactive({
+        if(input$manualColoursPCA==TRUE) {
+          # cPCA <- manualColoursPCA
+          cPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizeColoursPCA), collapse = ", "), ")")
+          cPCA <- eval(parse(text = cPCA))
+        } else {
+          # cPCA <- paletteColoursPCA
+          cPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+        }
+        cPCA
+      })
+      
+      ############### Get the gene loadings (in dudi.pca: $c1)
+      # pc_loadings <- pcaResults$c1
+      # colnames(pc_loadings) <- c("PC1", "PC2")
+      # # colnames(pc_loadings) <- pcList
+      # 
+      # # pc_loadings <- pc_loadings %>% 
+      # #   as_tibble(rownames = "gene")
+      # pc_loadings$gene <- rownames(pc_loadings)
+      # top_genes <- pc_loadings %>% 
+      #   dplyr::select(gene, PC1, PC2) %>%
+      #   # dplyr::select(gene, pcList) %>%
+      #   pivot_longer(matches("PC"), names_to = "PC", values_to = "loading") %>% 
+      #   group_by(PC) %>% 
+      #   arrange(desc(abs(loading)))
+      ###############
+            
+      # print(input$colorPalettePCA)
+      plotMethPCA <- pcaTableMeth %>%
+        # ggplot(aes(x = .data[[input$pickFactor1PCA]], y = .data[[input$pickFactor2PCA]], color = .data[[input$colorGroupPCA]], fill = .data[[input$colorGroupPCA]], shape = .data[[input$shapeGroupPCA]])) +
+        ggplot(aes(x = .data[[input$pickFactor1PCA]], y = .data[[input$pickFactor2PCA]], color = rownames(pcaTableMeth))) +
+        geom_point(size = as.numeric(input$pointSizePCA)) +
+        scale_color_manual(values = colourValuesPCA())
+      
+      plotMethPCA <- plotMethPCA + theme_classic()
+      
+      if (input$sampleLabelsPCA) {
+        plotPCA <- plotPCA +
+          geom_text(
+            aes(label = rownames(pcaTableMeth)),
+            size = (input$textSizePCA / 3),
+            hjust = 0.2, vjust = -1.5, check_overlap = T,
+            show.legend = FALSE
+          ) 
+      }
+
+      ### themes, axis labels ,legend etc
+      plotMethPCA <- plotMethPCA + labs(
+        title = input$pcaTitle,
+        # x = paste0(input$pickFactor1PCA, " (", sprintf("%.2f", tabVarprop$pct[tabVarprop$PC == input$pickFactor1PCA]), "% variance explained)"),
+        # y = paste0(input$pickFactor2PCA, " (", sprintf("%.2f", tabVarprop$pct[tabVarprop$PC == input$pickFactor2PCA]), "% variance explained)"),
+        x = paste0(input$pickFactor1PCA, " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == input$pickFactor1PCA]), "% variance explained)"),
+        y = paste0(input$pickFactor2PCA, " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == input$pickFactor2PCA]), "% variance explained)"),
+        # color = input$colorGroupPCA, shape = input$shapeGroupPCA
+        color = "Samples"
+      ) + theme(
+        axis.text.x = element_text(
+          colour = "grey20", size = input$textSizePCA, angle = 0, hjust = .5,
+          vjust = .5, face = "plain"
+        ),
+        axis.text.y = element_text(
+          colour = "grey20", size = input$textSizePCA, angle = 0, hjust = 1,
+          vjust = 0.5, face = "plain"
+        ),
+        axis.title.x = element_text(
+          colour = "grey20", size = input$textSizePCA, angle = 0, hjust = .5,
+          vjust = 0, face = "plain"
+        ),
+        axis.title.y = element_text(
+          colour = "grey20", size = input$textSizePCA, angle = 90,
+          hjust = .5, vjust = .5, face = "plain"
+        ),
+        legend.text = element_text(
+          colour = "grey20", size = input$textSizePCA
+        ),
+        legend.title = element_text(
+          colour = "grey20", size = input$textSizePCA
+        ),
+        title = element_text(colour = "grey20", size = input$textSizePCA, face = "bold", hjust = 0.5, margin = margin(b = 20))
+      )
+      
+      plotMethPCA <- plotMethPCA +
+        ylim(c(min(pcaTableMeth[[input$pickFactor2PCA]] * 1.1), max(pcaTableMeth[[input$pickFactor2PCA]] * 1.2))) +
+        xlim(c(min(pcaTableMeth[[input$pickFactor1PCA]] * 1.1), max(pcaTableMeth[[input$pickFactor1PCA]] * 1.2)))
+        
+      
+      output$pcaPlot <- renderPlot({
+        plotMethPCA
+      })
+      
+    }
+  ) # close Event PCA
+  
+
+  observeEvent( # Event histograms (1)
     {
       input$sample
     },

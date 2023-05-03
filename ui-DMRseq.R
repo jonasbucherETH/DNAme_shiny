@@ -38,9 +38,12 @@ tabItem(
         width = 12,
         maximizable = TRUE,
         status = "primary",
-        ###
         solidHeader = T, # solid color background
         background = NULL, #  background color of the box
+        headerBorder = T,
+        selected = NULL,
+        side = "left",
+        type = "tabs",
         # dropdownMenu = boxDropdown(
         #   icon = shiny::icon("wrench"),
         #   cardDropdownItem(id = ns("downloadPlotGreat"), href = NULL, icon = shiny::icon("glyphicon-download-alt"))

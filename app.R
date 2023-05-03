@@ -51,6 +51,7 @@ library("plyr")
 library("readxl")
 library("methylKit")
 library("shinyWidgets")
+library("colourpicker")
 
 
 # console.error = function () {
@@ -123,31 +124,35 @@ ui <- dashboardPage(
       menuItem(
         text = "DMR",
         tabName = "tab-DMRseq",
-        icon = icon("ranking-star")
+        icon = icon("chart-area")
       ),
       menuItem(
         text = "rGREAT",
         tabName = "tab-great",
         # startExpanded = TRUE,
-        icon = icon("ranking-star")
+        icon = icon("dna")
       ),
       menuItem(
         text = "Biological Processes",
-        tabName = "BP"
+        tabName = "BP",
+        icon = icon("dna")
       ),
       menuItem(
         text = "Cellular Component",
-        tabName = "CC"
+        tabName = "CC",
+        icon = icon("dna")
       ),
       menuItem(
         text = "Molecular Function",
-        tabName = "MF"
+        tabName = "MF",
+        icon = icon("dna")
       ),
         # menuItemOutput("menuItemReactome"),
         # menuItemOutput("menuItemKegg")
       menuItem(
         text = "methylKit",
-        tabName = "tab-methylKit"
+        tabName = "tab-methylKit",
+        icon = icon("chart-simple")
       )
     )
   ),
