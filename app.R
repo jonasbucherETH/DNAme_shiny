@@ -52,7 +52,10 @@ library("readxl")
 library("methylKit")
 library("shinyWidgets")
 library("colourpicker")
-
+library(htmltools)
+library(data.table)
+library(scales) # heatmap
+library(svglite) # for Homer
 
 # console.error = function () {
 #   require("system").stderr.write(Array.prototype.join.call(arguments, ' ') + '\n');
@@ -130,28 +133,57 @@ ui <- dashboardPage(
         text = "rGREAT",
         tabName = "tab-great",
         # startExpanded = TRUE,
-        icon = icon("dna")
+        icon = icon("dna"),
+        startExpanded = TRUE,
+        # bs4SidebarMenuSubItem(
+        #   text,
+        #   tabName = NULL,
+        #   href = NULL,
+        #   newTab = NULL,
+        #   icon = shiny::icon("angles-right"),
+        #   selected = NULL
+        # )
+        menuSubItem(
+          text = "Biological Processes",
+          tabName = "BP",
+          icon = icon("dna")
+        ),
+        menuSubItem(
+          text = "Cellular Component",
+          tabName = "CC",
+          icon = icon("dna")
+        ),
+        menuSubItem(
+          text = "Molecular Function",
+          tabName = "MF",
+          icon = icon("dna")
+        )
       ),
-      menuItem(
-        text = "Biological Processes",
-        tabName = "BP",
-        icon = icon("dna")
-      ),
-      menuItem(
-        text = "Cellular Component",
-        tabName = "CC",
-        icon = icon("dna")
-      ),
-      menuItem(
-        text = "Molecular Function",
-        tabName = "MF",
-        icon = icon("dna")
-      ),
+      # menuItem(
+      #   text = "Biological Processes",
+      #   tabName = "BP",
+      #   icon = icon("dna")
+      # ),
+      # menuItem(
+      #   text = "Cellular Component",
+      #   tabName = "CC",
+      #   icon = icon("dna")
+      # ),
+      # menuItem(
+      #   text = "Molecular Function",
+      #   tabName = "MF",
+      #   icon = icon("dna")
+      # ),
         # menuItemOutput("menuItemReactome"),
         # menuItemOutput("menuItemKegg")
       menuItem(
         text = "methylKit",
         tabName = "tab-methylKit",
+        icon = icon("chart-simple")
+      ),
+      menuItem(
+        text = "Motif analysis",
+        tabName = "tab-HOMER",
         icon = icon("chart-simple")
       )
     )
@@ -180,7 +212,8 @@ ui <- dashboardPage(
         tabName = "MF",
         greatUI("output_MF")
       ),
-      source("ui-methylKit.R", local = TRUE)$value
+      source("ui-methylKit.R", local = TRUE)$value,
+      source("ui-HOMER.R", local = TRUE)$value
     )
   ),
   controlbar = dashboardControlbar()
@@ -226,6 +259,7 @@ server <- function(input, output, session) {
   #   greatServer(id = "output_MF", greatResult = greatResult_MF, enrichmentTable = enrichmentTable_MF)
   # }
   source("server-methylKit.R", local = TRUE)
+  source("server-HOMER.R", local = TRUE)
 }
 
 breakStrings <- function(x, minSizeForBreak = 20, lb = "\n", nb = 2) {

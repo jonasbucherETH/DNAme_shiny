@@ -45,7 +45,24 @@ inputDataReactive <- reactive({
   gene.obj <- readRDS(file.path(dataDirMethylKit, paste0("gene.obj", ".rds")))
   diffMeth_25p_annotated <- readRDS(file.path(dataDirMethylKit, paste0("diffMeth_25p_annotated", ".rds")))
   
-
+  
+  ##### test data Homer
+  # generated from RStudio
+  all_motifs <- readRDS("~/data/homer/all_motifs.rds")
+  
+  
+  # motifPlots <- c(
+  #   "~/git/DNAme_shiny/data/homerResults/motif10.logo.svg",
+  #   "~/git/DNAme_shiny/data/homerResults/motif11.logo.svg",
+  #   "~/git/DNAme_shiny/data/homerResults/motif12.logo.svg"
+  # )
+  
+  # saveRDS(motifPlots, "~/git/DNAme_shiny/data/motifPlots.rds")
+  # motifPlots <- readRDS("~/git/DNAme_shiny/data/motifPlots.rds")
+  
+  
+  ### additional objects to use in several/all apps
+  myPalette <- colorRampPalette(colors = viridis::plasma(n = 7)[c(2, 4, 6)])
   
   return(list(
     "dmRegions" = dmRegions,
@@ -63,7 +80,10 @@ inputDataReactive <- reactive({
     "enrichmentTable_RE" = enrichmentTable_RE,
     "enrichmentTable_KE" = enrichmentTable_KE,
     "methylRaw" = methylRaw,
-    "methylAll" = methylAll
+    "methylAll" = methylAll,
+    # "motifPlots" = motifPlots,
+    "all_motifs" = all_motifs,
+    "myPalette" = myPalette
     )
   )
 })

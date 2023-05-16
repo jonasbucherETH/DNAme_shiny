@@ -3,6 +3,8 @@ observe({
   significantRegions <- inputDataReactive()$significantRegions
   bsseq <- inputDataReactive()$bsseq
   bsseqFiltered <- inputDataReactive()$bsseqFiltered
+  myPalette <- inputDataReactive()$myPalette
+
   testCovariate <- "Treatment"
   
   observeEvent( # Event number 0
@@ -93,7 +95,13 @@ observe({
           p1 <- ggplot(meth.levelsm, aes(M, colour = group, 
                                          group = group, weight = wt)) + geom_line(
                                                                                   alpha = 0.6, stat = "density", size = 1.3) + 
-            xlab("Methylation Proportion") + theme_bw()
+            xlab("Methylation Proportion") + theme_bw() +
+            # scale_color_gradientn(
+            #   colors = myPalette(n = length(unique(meth.levelsm$group)))
+            # ) 
+            scale_color_gradientn(
+              colors = brewer.pal(n = length(unique(meth.levelsm$group)), name = "Dark2")
+            ) 
         }
         else {
           # p1 <- ggplot(meth.levelsm, aes(Cov + 0.1, colour = group, 

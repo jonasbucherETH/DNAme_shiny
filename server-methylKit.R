@@ -27,6 +27,10 @@ observe({
     selected = sampleNames[1]
   )
   
+  observeEvent(input$methylKitTabCard, {
+    updateCardSidebar("sidebarMethylKit")
+  })
+  
   # # use normalized coverage?
   # methylationMatrixAll <- c()
   # for(i in seq_along(sampleNames)) {
@@ -67,6 +71,23 @@ observe({
   # for (i in 1:nPC) {
   #   colnames(pcaTable)[i + nGrouping] <- paste0("PC", i)
   # }
+  
+  ############### Get the gene loadings (in dudi.pca: $c1) 
+  # # here loadings=rotation??
+  # pc_loadings <- resultsPCA$rotation # 479x4(PCs)
+  # # colnames(pc_loadings) <- colnames(pcaTableMeth)
+  # # colnames(pc_loadings) <- pcList
+  # 
+  # # pc_loadings <- pc_loadings %>%
+  # #   as_tibble(rownames = "gene")
+  # pc_loadings$gene <- rownames(pc_loadings)
+  # top_genes <- pc_loadings %>%
+  #   dplyr::select(gene, PC1, PC2) %>%
+  #   # dplyr::select(gene, pcList) %>%
+  #   pivot_longer(matches("PC"), names_to = "PC", values_to = "loading") %>%
+  #   group_by(PC) %>%
+  #   arrange(desc(abs(loading)))
+  ###############
   
   updateSelectInput(
     session = session, 
@@ -142,7 +163,8 @@ observe({
   #   ignoreInit = T, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
   #   ignoreNULL = T, # default = TRUE
   #   {
-      
+     
+  clickCount <- reactiveVal(0) 
   
   observeEvent( # Event PCA
     {
@@ -155,6 +177,7 @@ observe({
       input$textSizePCA
       input$pointSizePCA
       input$pcaTitle
+      # input$actionButtonColours
       #input$selectThemePCA
     },
     ignoreInit = T, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
@@ -166,34 +189,39 @@ observe({
       
       # paletteColoursPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
       
+      # colourValuesPCA <- reactive({
+      #   if(input$manualColoursPCA==TRUE) {
+      #     cPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizeColoursPCA), collapse = ", "), ")")
+      #     cPCA <- eval(parse(text = cPCA))
+      #   } else {
+      #     # cPCA <- paletteColoursPCA
+      #     cPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+      #   }
+      #   cPCA
+      # })
+      
       colourValuesPCA <- reactive({
-        if(input$manualColoursPCA==TRUE) {
-          # cPCA <- manualColoursPCA
+        # print("up")
+        input$actionButtonColours
+        if (input$actionButtonColours == 0) {
+          cPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+          # print("if")
+        } else {
           cPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizeColoursPCA), collapse = ", "), ")")
           cPCA <- eval(parse(text = cPCA))
-        } else {
-          # cPCA <- paletteColoursPCA
-          cPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+          # print("else")
         }
         cPCA
       })
       
-      ############### Get the gene loadings (in dudi.pca: $c1)
-      # pc_loadings <- pcaResults$c1
-      # colnames(pc_loadings) <- c("PC1", "PC2")
-      # # colnames(pc_loadings) <- pcList
-      # 
-      # # pc_loadings <- pc_loadings %>% 
-      # #   as_tibble(rownames = "gene")
-      # pc_loadings$gene <- rownames(pc_loadings)
-      # top_genes <- pc_loadings %>% 
-      #   dplyr::select(gene, PC1, PC2) %>%
-      #   # dplyr::select(gene, pcList) %>%
-      #   pivot_longer(matches("PC"), names_to = "PC", values_to = "loading") %>% 
-      #   group_by(PC) %>% 
-      #   arrange(desc(abs(loading)))
-      ###############
-            
+      # Observe the action button click event and update the reactive expression
+      observeEvent(input$actionButtonColours, {
+        # Increment the click count by 1
+        clickCount(clickCount() + 1)
+      })
+      
+      # colourValuesPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+
       # print(input$colorPalettePCA)
       plotMethPCA <- pcaTableMeth %>%
         # ggplot(aes(x = .data[[input$pickFactor1PCA]], y = .data[[input$pickFactor2PCA]], color = .data[[input$colorGroupPCA]], fill = .data[[input$colorGroupPCA]], shape = .data[[input$shapeGroupPCA]])) +
@@ -204,7 +232,7 @@ observe({
       plotMethPCA <- plotMethPCA + theme_classic()
       
       if (input$sampleLabelsPCA) {
-        plotPCA <- plotPCA +
+        plotMethPCA <- plotMethPCA +
           geom_text(
             aes(label = rownames(pcaTableMeth)),
             size = (input$textSizePCA / 3),
@@ -259,6 +287,36 @@ observe({
       
     }
   ) # close Event PCA
+  
+  output$pcaScree <- renderPlot({
+    pcaVarprop2 <- pcaVarprop
+    pcaVarprop2$PC <- gsub("PC", "", pcaVarprop2$PC)
+    pcaVarprop2$PC <- factor(pcaVarprop2$PC, levels = pcaVarprop2$PC)
+    pcaVarprop2$variance <- as.numeric(pcaVarprop2$variance)
+    pcaVarprop2$pct <- as.numeric(pcaVarprop2$pct)
+    pcaVarprop2$pct_cum <- as.numeric(pcaVarprop2$pct_cum)
+    
+    if (nrow(pcaVarprop2) > 10) {
+      pcaVarprop2 <- pcaVarprop2[1:10,]
+    }
+    pcaScree <- pcaVarprop2 %>%
+      ggplot(aes(x = PC)) +
+      geom_col(aes(y = pct)) +
+      geom_line(aes(y = pct_cum, group = 1)) +
+      geom_point(aes(y = pct_cum)) +
+      labs(x = "Principal component", y = "Fraction variance explained (%)") +
+      scale_y_continuous(n.breaks = 20) +
+      theme_classic(base_size = as.numeric(input$textSizePCA))
+    pcaScree
+    
+  } 
+  # , width = 500, height = 400
+  )
+  
+  output$pcaLoadings <- DT::renderDataTable({
+    datatable(top_genes, rownames = F) %>% formatRound("loading", digits = 3)
+    # datatable(top_genes[[c(input$pickFactor1PCA,input$pickFactor2PCA)]], rownames = F) %>% formatRound("loading", digits = 3)
+  })
   
 
   observeEvent( # Event histograms (1)

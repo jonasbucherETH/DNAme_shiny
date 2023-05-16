@@ -13,7 +13,7 @@ greatUI <- function(id) {
           id = ns("tabBoxGreat"),
           # id = NULL,
           # title = NULL,
-          width = 9,
+          width = 10,
           maximizable = TRUE,
           status = "primary",
           headerBorder = T,
@@ -28,99 +28,39 @@ greatUI <- function(id) {
           background = NULL, #  background color of the box
           dropdownMenu = boxDropdown(
             icon = shiny::icon("wrench"),
-            cardDropdownItem(id = ns("downloadPlotGreat"), href = NULL, icon = shiny::icon("glyphicon-download-alt"))
+            cardDropdownItem(id = ns("downloadPlotGreat"), href = NULL, icon = shiny::icon("download-alt"))
           ),
           sidebar = bs4CardSidebar(
             id = ns("sidebarGreatPlots"),
-            width = 40, # Sidebar opening width in percentage
+            width = 25, # Sidebar opening width in percentage
             background = "#333a40",
-            startOpen = FALSE,
+            startOpen = TRUE,
             icon = shiny::icon("gears"),
             easyClose = TRUE,
-            selectInput(
-              inputId = ns("xFactorVolcano"),
-              label = "Select factor for x-axis",
-              choices = c("fold_enrichment", "z-score"),
-              selected = "fold_enrichment"
-            ),
-            selectInput(
-              inputId = ns("yFactorVolcano"),
-              label = "Select factor for y-axis",
-              choices = c("p_value", "p_adjust"),
-              selected = "p_value"
-            ),
-            textInput(
-              inputId = ns("titleVolcanoPlot"),
-              label = "Plot title",
-              value = "Volcano Plot",
-            )
-          ), # close boxSidebar
-          # .list = c(
-            tabPanel(
-              title = "Volcano Plot",
-              # width = NULL,
-              # solidHeader = TRUE,
-              # status = "primary",
-              # collapsible = FALSE,
-              # collapsed = FALSE,
-              plotlyOutput(
-                outputId = ns("volcanoPlot"),
-                inline = F
-                # width = "100%",
-                # height = "auto"
-              )
-              # selectInput(
-              #   inputId = ns("xFactorVolcano"),
-              #   label = "Select factor for x-axis",
-              #   choices = c("fold_enrichment", "z-score"),
-              #   selected = "fold_enrichment"
-              # ),
-              # selectInput(
-              #   inputId = ns("yFactorVolcano"),
-              #   label = "Select factor for y-axis",
-              #   choices = c("p_value", "p_adjust"),
-              #   selected = "p_value"
-              # ),
-              # textInput(
-              #   inputId = ns("titleVolcanoPlot"),
-              #   label = "Plot title",
-              #   value = "Volcano Plot",
-              # )
-            ),
-              #   plotOutput(
-              #     outputId = ns("volcanoPlot"),
-              #     inline = T,
-              #     hover = hoverOpts(
-              #       id = ns("hoverVolcanoPlot"),
-              #       delay = 30,
-              #       delayType = "throttle",
-              #       # clip = TRUE,
-              #       nullOutside = TRUE
-              #     ),
-              #     width = "60%",
-              #     height = "auto"
-              #   )
-              # ),
-            tabPanel( # tabPanel associations
-              title = "Region-Gene Associations Plots",
-              width = NULL,
-              solidHeader = TRUE,
-              status = "primary",
-              # collapsible = FALSE,
-              # collapsed = FALSE,
-              # selectInput(
-              #   inputId = "selectTermID",
-              #   label = "Select term",
-              #   choices = "",
-              #   selected = ""
-              # ),
-              
-              # htmlOutput(outputId = "enrichment_table"),
-              plotOutput(
-                outputId = ns("associationsPlots")
-                # inline = F
-                # width = "100%"
+            conditionalPanel(
+              condition = "input.tabBoxGreat == 'Volcano Plot'",
+              ns = NS(id),
+              selectInput(
+                inputId = ns("xFactorVolcano"),
+                label = "Select factor for x-axis",
+                choices = c("fold_enrichment", "z-score"),
+                selected = "fold_enrichment"
               ),
+              selectInput(
+                inputId = ns("yFactorVolcano"),
+                label = "Select factor for y-axis",
+                choices = c("p_value", "p_adjust"),
+                selected = "p_value"
+              ),
+              textInput(
+                inputId = ns("titleVolcanoPlot"),
+                label = "Plot title",
+                value = "Volcano Plot",
+              )
+            ), # close conditionalPanel volcanoPlot
+            conditionalPanel(
+              condition = "input.tabBoxGreat == 'Region-Gene Associations Plots'",
+              ns = NS(id),
               selectizeInput(
                 inputId = ns("selectizeTerm"), 
                 label = "Select Term for associations", 
@@ -128,33 +68,66 @@ greatUI <- function(id) {
                 selected = character(0), 
                 multiple = FALSE,
                 options = NULL
-              ),
-              tags$b("Delete to show all associations")
-            ), # close tabPanel associations
-          
-            tabPanel( # tabPanel dot plot
-              title = "Dot Plot",
-              width = NULL,
-              solidHeader = TRUE,
-              status = "primary",
-              # collapsible = FALSE,
-              # collapsed = FALSE,
-              
-              plotOutput(
-                outputId = ns("dotPlot")
-                # inline = F
-                # width = "100%",
-                # height = "auto"
-              ),
+              )
+            ), # close conditionalPanel Region-Gene Associations Plots
+            conditionalPanel(
+              condition = "input.tabBoxGreat == 'Dot Plot'",
+              ns = NS(id),
               actionButton(
                 inputId = ns("actionButtonDotPlot"), 
                 label = "Generate dot plot with selected terms",
                 icon = NULL, 
                 width = NULL
               )
-            ) # close tabPanel dot plot
-          # ) # close .list
+            ) # close conditionalPanel Dot Plot
+          ), # close boxSidebar
+          # .list = c(
+          tabPanel(
+            title = "Volcano Plot",
+            # width = NULL,
+            # solidHeader = TRUE,
+            # status = "primary",
+            # collapsible = FALSE,
+            # collapsed = FALSE,
+            plotlyOutput(
+              outputId = ns("volcanoPlot"),
+              inline = F
+              # width = "100%",
+              # height = "auto"
+            )
+
+          ),
+          tabPanel( # tabPanel associations
+            title = "Region-Gene Associations Plots",
+            width = NULL,
+            solidHeader = TRUE,
+            status = "primary",
+            # collapsible = FALSE,
+            # collapsed = FALSE,
+            # htmlOutput(outputId = "enrichment_table"),
+            plotOutput(
+              outputId = ns("associationsPlots")
+              # inline = F
+              # width = "100%"
+            )
+          ), # close tabPanel associations
           
+          tabPanel( # tabPanel dot plot
+            title = "Dot Plot",
+            width = NULL,
+            solidHeader = TRUE,
+            status = "primary",
+            # collapsible = FALSE,
+            # collapsed = FALSE,
+            
+            # plotOutput(
+            plotlyOutput(
+              outputId = ns("dotPlot")
+              # inline = F
+              # width = "100%",
+              # height = "auto"
+            )
+          ) # close tabPanel dot plot
         ) # close tabBox 
       ) # close plot column
     ), # close fluidRow 1
@@ -183,11 +156,15 @@ greatUI <- function(id) {
                                # choiceValues = character(0),
                                choices = character(0),
                                selected = character(0),
+                               # checkIcon = list(
+                               #   yes = tags$i(class = "fa fa-check-square", 
+                               #                style = "color: steelblue"),
+                               #   no = tags$i(class = "fa fa-square-o", 
+                               #               style = "color: steelblue")),
                                checkIcon = list(
-                                 yes = tags$i(class = "fa fa-check-square", 
-                                              style = "color: steelblue"),
-                                 no = tags$i(class = "fa fa-square-o", 
-                                             style = "color: steelblue"))
+                                 yes = icon("ok",
+                                            lib = "glyphicon")),
+                               size = "sm"
           ),
           br(),
           DT::dataTableOutput(
@@ -222,6 +199,12 @@ greatServer <- function(id, greatResult, enrichmentTable) {
       # })
       
       enrichmentTable$description <- breakStrings(enrichmentTable$description)
+      myPalette <- colorRampPalette(colors = viridis::plasma(n = 7)[c(2, 4, 6)])
+      
+      observeEvent(input$tabBoxGreat, {
+        updateCardSidebar("sidebarGreatPlots")
+      })
+
       
       observe({
         
@@ -229,15 +212,14 @@ greatServer <- function(id, greatResult, enrichmentTable) {
           session = session,
           inputId = "selectizeTerm", 
           label = "Select Term for associations",
-          choices = enrichmentTable$id,
+          choices = c("All terms" = "", enrichmentTable$id),
           selected = "",
           options = list(),
-          server = FALSE
+          # server = FALSE
+          server = TRUE
         )
         
         # colour palette from deepak
-        myPalette <- colorRampPalette(colors = viridis::plasma(n = 7)[c(2, 4, 6)])
-        
         min_region_hits <- 5
         
         gr_all <- getRegionGeneAssociations(greatResult)
@@ -257,11 +239,15 @@ greatServer <- function(id, greatResult, enrichmentTable) {
           # choiceValues = colnames(enrichmentTable)[-1],
           choices = colnames(enrichmentTable)[-1],
           selected = colnames(enrichmentTable)[c(2,5,6,7)],
+          # checkIcon = list(
+          #   yes = tags$i(class = "fa fa-check-square", 
+          #                style = "color: steelblue"),
+          #   no = tags$i(class = "fa fa-square-o", 
+          #               style = "color: steelblue"))
           checkIcon = list(
-            yes = tags$i(class = "fa fa-check-square", 
-                         style = "color: steelblue"),
-            no = tags$i(class = "fa fa-square-o", 
-                        style = "color: steelblue"))
+            yes = icon("ok",
+                       lib = "glyphicon")),
+          size = "sm"
           # inline = TRUE
         )
         
@@ -326,8 +312,9 @@ greatServer <- function(id, greatResult, enrichmentTable) {
             
             volcanoPlot <- ggplot(data.frame(x = x[l], y = y[l], observed_region_hits = observed_region_hits[l], genome_fraction = genome_fraction[l], 
                                              id = enrichmentTable$id[l], description = enrichmentTable$description[l], p_value = enrichmentTable$p_value[l],
-                                             fold_enrichment = enrichmentTable$fold_enrichment[l]), aes(x = x, y = y, text = paste(id, description, p_value, fold_enrichment, sep = "<br>")
-                                 ))
+                                             fold_enrichment = enrichmentTable$fold_enrichment[l]), 
+                                  aes(x = x, y = y, text = paste(id, description, paste0("p-value: ", sprintf("%.2f", p_value)), paste0("Fold enrichment: ", sprintf("%.3f", fold_enrichment)), sep = "<br>"))
+                                )
             # paste0("a", "b", sep = "<br>")
             # sep = "<br>"
             # text = c(id,description,p_value,fold_enrichment))
@@ -471,8 +458,9 @@ greatServer <- function(id, greatResult, enrichmentTable) {
               x = description,
               y = fold_enrichment,
               color = -log10(p_adjust),
-              size = observed_gene_hits
-            )) +
+              size = observed_gene_hits,
+              text = paste(description, paste0("-log10(p_adjust): ", sprintf("%.3f", -log10(p_adjust))), paste0("Fold enrichment: ", sprintf("%.3f", fold_enrichment)), paste0("Observed gene hits: ", observed_gene_hits), sep = "<br>"))
+            ) +
               geom_point(show.legend = T, alpha = 0.7, stroke = 1.5) +
               coord_flip(expand = T) +
               xlab("") +
@@ -502,13 +490,31 @@ greatServer <- function(id, greatResult, enrichmentTable) {
               ) +
               guides(size = guide_legend(reverse=TRUE))
             
-            output$dotPlot <- renderPlot({
+            dotPlot <- ggplotly(dotPlot,
+                                tooltip = "text",
+                                # tooltip = c("id","description","p_value","fold_enrichment"),
+                                # width = session$clientData$output_volcanoPlot_width,
+                                # height = session$clientData$output_volcanoPlot_height,
+                                interactive = T) 
+            # %>%
+            #   layout(legend = list(
+            #     orientation = "h",
+            #     x = -1,
+            #     y = 1
+            #   ) 
+            #   )
+
+            output$dotPlot <- renderPlotly({
               dotPlot
-            }
-            # , height = function() {
-            #   session$clientData$output_dotPlot_width * 0.8
+            })
+            
+            # output$dotPlot <- renderPlot({
+            #   dotPlot
             # }
-            )
+            # # , height = function() {
+            # #   session$clientData$output_dotPlot_width * 0.8
+            # # }
+            # )
         }) # close Event number 2
         
         observeEvent( # Event number 2

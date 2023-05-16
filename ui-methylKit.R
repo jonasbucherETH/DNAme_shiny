@@ -27,7 +27,99 @@ tabItem(
         #   easyClose = TRUE,
         #   uiOutput("moreControls")
         # ),
-        
+        sidebar = bs4CardSidebar(
+          id = "sidebarMethylKit",
+          width = 25, # Sidebar opening width in percentage
+          background = "#333a40",
+          startOpen = TRUE,
+          icon = shiny::icon("gears"),
+          easyClose = TRUE,
+          conditionalPanel(
+            condition = "input.methylKitTabCard == 'Methylation Statistics'",
+            selectInput(
+              inputId = "sample",
+              label = "Select sample to display",
+              choices = character(0),
+              selected = character(0)
+            )
+          ), # close conditionalPanel Methylation Statistics
+          conditionalPanel(
+            condition = "input.methylKitTabCard == 'PCA of samples'",
+            selectInput(
+              inputId = "pickFactor1PCA",
+              label = "Select PC for x-axis",
+              choices = character(0),
+              selected = character(0)
+            ),
+            selectInput(
+              inputId = "pickFactor2PCA",
+              label = "Select PC for y-axis",
+              choices = character(0),
+              selected = character(0)
+            ),
+            textInput(
+              inputId = "pcaTitle",
+              label = "Title of plot",
+              value = "PCA plot of samples"
+            ),
+            checkboxInput(
+              inputId = "sampleLabelsPCA",
+              label = "Display sample labels",
+              value = TRUE
+            ),
+            numericInput(
+              inputId = "pointSizePCA",
+              label = "Point size", min = 1, max = 6,
+              value = 3, step = 0.5,
+              # width = "100px"
+            ),
+            numericInput(
+              inputId = "textSizePCA",
+              label = "Font Size", min = 4, max = 30,
+              value = 12, step = 0.5,
+              # width = "100px"
+            ),
+            selectInput(
+              inputId = "colorPalettePCA",
+              label = "Select color palette for PCA",
+              choices = character(0),
+              selected = character(0)
+            ),
+            plotOutput(
+              outputId = "colorPalettesPlot",
+              inline = F,
+              width = "100%"
+              # height = "auto"
+            ),
+            materialSwitch(
+              inputId = "manualColoursPCA", 
+              label = "Select colours manually", 
+              status = "primary",
+              value = FALSE, 
+              width = NULL
+            ),
+            conditionalPanel(
+              condition = "input.manualColoursPCA == true",
+              selectizeInput(
+                inputId = "selectizeColoursPCA",
+                label = "",
+                choices = character(0),
+                selected = character(0),
+                multiple = TRUE
+              ),
+              uiOutput('colourPanelPCA'),
+              bs4Dash::actionButton(
+                inputId = "actionButtonColours",
+                label = "Apply colours",
+                icon = NULL,
+                # style = "unite",
+                # color = "default",
+                size = "sm"
+              )
+            )
+          ) # close conditionalPanel PCA of samples
+        ), # close sidebar
+            
         tabPanel(
           title = "Methylation Statistics",
           width = NULL,
@@ -35,7 +127,7 @@ tabItem(
           # status = "primary",
           fluidRow(
             column(
-              width = 5,
+              width = 6,
               plotOutput(
                 outputId = "methylationHistogram",
                 inline = F,
@@ -44,21 +136,12 @@ tabItem(
               )
             ),
             column(
-              width = 5,
+              width = 6,
               plotOutput(
                 outputId = "coverageHistogram",
                 inline = F,
                 width = "100%"
                 # height = "auto"
-              )
-            ),
-            column(
-              width = 2,
-              selectInput(
-                inputId = "sample",
-                label = "Select sample to display",
-                choices = character(0),
-                selected = character(0)
               )
             )
           )
@@ -74,71 +157,14 @@ tabItem(
             width = "100%"
             # height = "auto"
           ),
-          selectInput(
-            inputId = "pickFactor1PCA",
-            label = "Select PC for x-axis",
-            choices = character(0),
-            selected = character(0)
-          ),
-          selectInput(
-            inputId = "pickFactor2PCA",
-            label = "Select PC for y-axis",
-            choices = character(0),
-            selected = character(0)
-          ),
-          textInput(
-            inputId = "pcaTitle",
-            label = "Title of plot",
-            value = "PCA plot of samples"
-          ),
-          checkboxInput(
-            inputId = "sampleLabelsPCA",
-            label = "Display sample labels",
-            value = TRUE
-          ),
-          numericInput(
-            inputId = "pointSizePCA",
-            label = "Point size", min = 1, max = 6,
-            value = 3, step = 0.5,
-            # width = "100px"
-          ),
-          numericInput(
-            inputId = "textSizePCA",
-            label = "Font Size", min = 4, max = 30,
-            value = 12, step = 0.5,
-            # width = "100px"
-          ),
-          # input$sampleLabelsPCA
-          # input$textSizePCA
-          # input$pointSizePCA
-          # input$pcaTitle
-          
-          selectInput(
-            inputId = "colorPalettePCA",
-            label = "Select color palette for PCA",
-            choices = character(0),
-            selected = character(0)
-          ),
           plotOutput(
-            outputId = "colorPalettesPlot",
+            outputId = "pcaScree",
             inline = F,
             width = "100%"
             # height = "auto"
           ),
-          checkboxInput(
-            inputId = "manualColoursPCA", 
-            label = "Select colours manually", 
-            value = FALSE, 
-            width = NULL
-          ),
-          selectizeInput(
-            inputId = "selectizeColoursPCA",
-            label = "",
-            choices = character(0),
-            selected = character(0),
-            multiple = TRUE
-          ),
-          uiOutput('colourPanelPCA'),
+          # DT::dataTableOutput("pcaLoadings")
+          
         ) # close tabPanel PCA
       ) # close tabBox
     ) # close column
