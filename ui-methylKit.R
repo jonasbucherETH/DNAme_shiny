@@ -2,7 +2,7 @@ tabItem(
   tabName = "tab-methylKit",
   fluidRow( ### NOTE: 1 row has width = 12
     column(
-      width = 10,
+      width = 12,
       bs4TabCard(
         width = 12,
         # id = NULL,
@@ -17,16 +17,6 @@ tabItem(
         ###
         solidHeader = T, # solid color background
         background = NULL, #  background color of the box
-        
-        # bs4CardSidebar(
-        #   id = "sidebarMethylKit",
-        #   width = 50,
-        #   background = "#333a40",
-        #   startOpen = T,
-        #   # icon = shiny::icon("gears"),
-        #   easyClose = TRUE,
-        #   uiOutput("moreControls")
-        # ),
         sidebar = bs4CardSidebar(
           id = "sidebarMethylKit",
           width = 25, # Sidebar opening width in percentage
@@ -37,7 +27,7 @@ tabItem(
           conditionalPanel(
             condition = "input.methylKitTabCard == 'Methylation Statistics'",
             selectInput(
-              inputId = "sample",
+              inputId = "sampleHistograms",
               label = "Select sample to display",
               choices = character(0),
               selected = character(0)
@@ -45,6 +35,14 @@ tabItem(
           ), # close conditionalPanel Methylation Statistics
           conditionalPanel(
             condition = "input.methylKitTabCard == 'PCA of samples'",
+            # pickerInput(
+            #   inputId = "pickFactorsPCA",
+            #   label = "Select PCs to plot", 
+            #   choices = character(0),
+            #   multiple = TRUE,
+            #   options =  list("max-options" = 2)
+            # ),
+            # verbatimTextOutput(outputId = "res_classic"),
             selectInput(
               inputId = "pickFactor1PCA",
               label = "Select PC for x-axis",
@@ -78,7 +76,88 @@ tabItem(
               label = "Font Size", min = 4, max = 30,
               value = 12, step = 0.5,
               # width = "100px"
+            )
+            # selectInput(
+            #   inputId = "colorPalettePCA",
+            #   label = "Select color palette for PCA",
+            #   choices = character(0),
+            #   selected = character(0)
+            # ),
+            # plotOutput(
+            #   outputId = "colorPalettesPlot",
+            #   inline = F,
+            #   width = "100%"
+            #   # height = "auto"
+            # ),
+            # materialSwitch(
+            #   inputId = "manualColoursPCA", 
+            #   label = "Select colours manually", 
+            #   status = "primary",
+            #   value = FALSE, 
+            #   width = NULL
+            # ),
+            # conditionalPanel(
+            #   condition = "input.manualColoursPCA == true",
+            #   selectizeInput(
+            #     inputId = "selectizeColoursPCA",
+            #     label = "",
+            #     choices = character(0),
+            #     selected = character(0),
+            #     multiple = TRUE
+            #   ),
+            #   uiOutput('colourPanelPCA'),
+            #   bs4Dash::actionButton(
+            #     inputId = "actionButtonColours",
+            #     label = "Apply colours",
+            #     icon = NULL,
+            #     # style = "unite",
+            #     # color = "default",
+            #     size = "sm"
+            #   )
+            # )
+          ) # close conditionalPanel PCA of samples
+        ), # close sidebar
+            
+        tabPanel(
+          title = "Methylation Statistics",
+          width = NULL,
+          solidHeader = TRUE,
+          # status = "primary",
+          fluidRow(
+            column(
+              width = 6,
+              plotOutput(
+                outputId = "methylationHistogram",
+                inline = F,
+                width = "100%"
+                # height = "auto"
+              )
             ),
+            column(
+              width = 6,
+              plotOutput(
+                outputId = "coverageHistogram",
+                inline = F,
+                width = "100%"
+                # height = "auto"
+              )
+            )
+          )
+        ), # close tabPanel Methylation Statistics
+        tabPanel(
+          title = "PCA of samples",
+          width = NULL,
+          solidHeader = TRUE,
+          status = "primary",
+          dropdown(
+            style = "unite", icon = icon("gear"),
+            status = "danger", width = "300px",
+            animate = animateOptions(
+              enter = animations$fading_entrances$fadeInLeftBig,
+              exit = animations$fading_exits$fadeOutRightBig
+            ),
+            tags$h3("Colour options"),
+            
             selectInput(
               inputId = "colorPalettePCA",
               label = "Select color palette for PCA",
@@ -117,40 +196,7 @@ tabItem(
                 size = "sm"
               )
             )
-          ) # close conditionalPanel PCA of samples
-        ), # close sidebar
-            
-        tabPanel(
-          title = "Methylation Statistics",
-          width = NULL,
-          solidHeader = TRUE,
-          # status = "primary",
-          fluidRow(
-            column(
-              width = 6,
-              plotOutput(
-                outputId = "methylationHistogram",
-                inline = F,
-                width = "100%"
-                # height = "auto"
-              )
-            ),
-            column(
-              width = 6,
-              plotOutput(
-                outputId = "coverageHistogram",
-                inline = F,
-                width = "100%"
-                # height = "auto"
-              )
-            )
-          )
-        ), # close tabPanel Methylation Statistics
-        tabPanel(
-          title = "PCA of samples",
-          width = 10,
-          solidHeader = TRUE,
-          status = "primary",
+          ), # close drowpdown
           plotOutput(
             outputId = "pcaPlot",
             inline = F,
@@ -162,7 +208,7 @@ tabItem(
             inline = F,
             width = "100%"
             # height = "auto"
-          ),
+          )
           # DT::dataTableOutput("pcaLoadings")
           
         ) # close tabPanel PCA

@@ -13,7 +13,14 @@ inputDataReactive <- reactive({
   significantRegions <- readRDS(significantRegionsFilePath)
   bsseq <- readRDS(bsseqFilePath)
   bsseqFiltered <- readRDS(bsseqFilteredFilePath)
-  
+  # saveRDS(BS.cancer.ex, file.path("~/data/dmrseq/bsseq_ex_data", "BS.cancer.ex.rds"))
+  # saveRDS(BS.cancer.ex.fit, file.path("~/data/dmrseq/bsseq_ex_data", "BS.cancer.ex.fit.rds"))
+  # saveRDS(dmrs0, file.path("~/data/dmrseq/bsseq_ex_data", "dmrs0.rds"))
+  # saveRDS(dmrs, file.path("~/data/dmrseq/bsseq_ex_data", "dmrs.rds"))
+
+  regions_dmrseq <- readRDS(file.path("~/data/dmrseq/bsseq_ex_data", "regions_dmrseq.rds"))
+  BS.cancer.ex.red <- readRDS(file.path("~/data/dmrseq/bsseq_ex_data", "BS.cancer.ex.red.rds"))
+
   ##### test data great
   # generated from bash script
   dataDirGreat_mm <- "~/data/great/mm"
@@ -83,7 +90,9 @@ inputDataReactive <- reactive({
     "methylAll" = methylAll,
     # "motifPlots" = motifPlots,
     "all_motifs" = all_motifs,
-    "myPalette" = myPalette
+    "myPalette" = myPalette,
+    "BS.cancer.ex.red" = BS.cancer.ex.red,
+    "regions_dmrseq" = regions_dmrseq
     )
   )
 })

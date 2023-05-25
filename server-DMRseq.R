@@ -3,11 +3,44 @@ observe({
   significantRegions <- inputDataReactive()$significantRegions
   bsseq <- inputDataReactive()$bsseq
   bsseqFiltered <- inputDataReactive()$bsseqFiltered
+  regions_dmrseq <- inputDataReactive()$regions_dmrseq
+  BS.cancer.ex.red <- inputDataReactive()$BS.cancer.ex.red
+  
   myPalette <- inputDataReactive()$myPalette
+  
+  observeEvent(input$dmrseqTabCard, {
+    updateCardSidebar("sidebardmrseq")
+  })
+  
+  updateNumericInput(
+    inputId = "selectRegion",
+    label = "Select Region to plot",
+    value = 1,
+    min = 1,
+    max = length(regions_dmrseq),
+    step = 1
+    # width = NULL
+  )
+  
+  pData(BS.cancer.ex.red)$col <- c(rep("#E69F00", 3), rep("#0072B2", 3))
+
+  observeEvent( # Event plot DMRs
+    {
+      input$selectRegion
+    },
+    ignoreInit = F, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
+    ignoreNULL = T, # default = TRUE
+    {
+      output$dmrPlot <- renderPlot({
+        plotDMRs(BS.cancer.ex.red, regions=regions_dmrseq[input$selectRegion,], testCovariate="Type",
+                 annoTrack=NULL)
+      })
+    }
+  ) # close Event plot DMRs
 
   testCovariate <- "Treatment"
   
-  observeEvent( # Event number 0
+  observeEvent( # Event EmpiricalDistribution
     {
       input$xFactorEmpiricalDistribution
       input$bySample
@@ -174,6 +207,6 @@ observe({
       })
 
     }
-  ) # close Event number 0
+  ) # close Event EmpiricalDistribution
   
 }) # close observe

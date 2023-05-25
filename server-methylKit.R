@@ -5,6 +5,22 @@ observe({
   # str_sub(colnames(methylAll)[5:length(methylAll)], start = -2, end = -1) <- str_end
   sampleNames <- c("test1","test2","ctrl1","ctrl2")
   
+  # observeEvent(input$pickFactorsPCA, {
+  #   output$res_classic <- renderPrint(input$pickFactorsPCA)
+  # })
+  
+  # output$res_classic <- renderPrint(input$classic)
+  
+  methylationList <- list()
+  for(i in seq_along(sampleNames)) {
+    dataMethylRaw <- getData(methylRaw[[i]])
+    totalCoverage <- sum(dataMethylRaw$coverage)
+    methylationDF <- data.frame(
+      "Percent_Methylation" = 100*dataMethylRaw$numCs / (dataMethylRaw$numCs + dataMethylRaw$numTs),
+      "Coverage" = dataMethylRaw$coverage
+    )
+    methylationList <- c(methylationList, list(methylationDF))
+  }
   
   palettesCategorical <- brewer.pal.info[brewer.pal.info$category=="qual" & brewer.pal.info$maxcolors >= length(sampleNames) & brewer.pal.info$colorblind==TRUE, ]
   # display.brewer.pal(length(sampleNames), "Dark2")
@@ -21,7 +37,7 @@ observe({
   )
   
   updateSelectInput(
-    inputId = "sample",
+    inputId = "sampleHistograms",
     # label = "Select sample to display",
     choices = sampleNames,
     selected = sampleNames[1]
@@ -90,18 +106,28 @@ observe({
   ###############
   
   updateSelectInput(
-    session = session, 
-    "pickFactor1PCA", 
-    choices = colnames(resultsPCA$rotation), 
+    session = session,
+    "pickFactor1PCA",
+    choices = colnames(resultsPCA$rotation),
     selected = colnames(resultsPCA$rotation)[1]
   )
-  
+
   updateSelectInput(
-    session = session, 
-    "pickFactor2PCA", 
-    choices = colnames(resultsPCA$rotation), 
+    session = session,
+    "pickFactor2PCA",
+    choices = colnames(resultsPCA$rotation),
     selected = colnames(resultsPCA$rotation)[2]
   )
+  
+  # updatePickerInput(
+  #   session = session ,
+  #   inputId = "pickFactorsPCA",
+  #   label = "Select PCs to plot",
+  #   choices = colnames(resultsPCA$rotation),
+  #   selected = list(colnames(resultsPCA$rotation)[1], colnames(resultsPCA$rotation)[2])
+  #   # multiple = TRUE,
+  #   # options =  list("max-options-group" = 1)
+  # )
   
   updateSelectizeInput( # maybe this is not needed (always give all options)
     # session = getDefaultReactiveDomain(),
@@ -171,6 +197,7 @@ observe({
       # input$sampleLabelsPCA
       input$pickFactor1PCA
       input$pickFactor2PCA
+      # input$pickFactorsPCA
       input$colorPalettePCA
       input$manualColoursPCA
       input$sampleLabelsPCA
@@ -202,8 +229,10 @@ observe({
       
       colourValuesPCA <- reactive({
         # print("up")
-        input$actionButtonColours
-        if (input$actionButtonColours == 0) {
+        # input$actionButtonColours
+        clickCount()
+        # if (input$actionButtonColours == 0) {
+        if (clickCount() == 0) {
           cPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
           # print("if")
         } else {
@@ -221,10 +250,12 @@ observe({
       })
       
       # colourValuesPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+      # selectedPCs <- sort(input$pickFactorsPCA)
 
       # print(input$colorPalettePCA)
       plotMethPCA <- pcaTableMeth %>%
         # ggplot(aes(x = .data[[input$pickFactor1PCA]], y = .data[[input$pickFactor2PCA]], color = .data[[input$colorGroupPCA]], fill = .data[[input$colorGroupPCA]], shape = .data[[input$shapeGroupPCA]])) +
+        # ggplot(aes(x = .data[[selectedPCs[1]]], y = .data[[selectedPCs[2]]], color = rownames(pcaTableMeth))) +
         ggplot(aes(x = .data[[input$pickFactor1PCA]], y = .data[[input$pickFactor2PCA]], color = rownames(pcaTableMeth))) +
         geom_point(size = as.numeric(input$pointSizePCA)) +
         scale_color_manual(values = colourValuesPCA())
@@ -244,10 +275,10 @@ observe({
       ### themes, axis labels ,legend etc
       plotMethPCA <- plotMethPCA + labs(
         title = input$pcaTitle,
-        # x = paste0(input$pickFactor1PCA, " (", sprintf("%.2f", tabVarprop$pct[tabVarprop$PC == input$pickFactor1PCA]), "% variance explained)"),
-        # y = paste0(input$pickFactor2PCA, " (", sprintf("%.2f", tabVarprop$pct[tabVarprop$PC == input$pickFactor2PCA]), "% variance explained)"),
         x = paste0(input$pickFactor1PCA, " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == input$pickFactor1PCA]), "% variance explained)"),
         y = paste0(input$pickFactor2PCA, " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == input$pickFactor2PCA]), "% variance explained)"),
+        # x = paste0(selectedPCs[1], " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == selectedPCs[1]]), "% variance explained)"),
+        # y = paste0(selectedPCs[2], " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == selectedPCs[2]]), "% variance explained)"),
         # color = input$colorGroupPCA, shape = input$shapeGroupPCA
         color = "Samples"
       ) + theme(
@@ -279,6 +310,9 @@ observe({
       plotMethPCA <- plotMethPCA +
         ylim(c(min(pcaTableMeth[[input$pickFactor2PCA]] * 1.1), max(pcaTableMeth[[input$pickFactor2PCA]] * 1.2))) +
         xlim(c(min(pcaTableMeth[[input$pickFactor1PCA]] * 1.1), max(pcaTableMeth[[input$pickFactor1PCA]] * 1.2)))
+        # ylim(c(min(pcaTableMeth[[selectedPCs[2]]] * 1.1), max(pcaTableMeth[[selectedPCs[2]]] * 1.2))) +
+        # xlim(c(min(pcaTableMeth[[selectedPCs[1]]] * 1.1), max(pcaTableMeth[[selectedPCs[1]]] * 1.2)))
+      
         
       
       output$pcaPlot <- renderPlot({
@@ -321,25 +355,28 @@ observe({
 
   observeEvent( # Event histograms (1)
     {
-      input$sample
+      input$sampleHistograms
     },
     ignoreInit = F, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
     ignoreNULL = T, # default = TRUE
     {
 
-      if(input$sample == "") {
+      if(input$sampleHistograms == "") {
         sampleIndex <- 1
+        # sampleIndex <- 1:length(sampleNames)
       } else {
-        sampleIndex <- which(sampleNames == input$sample)
+        sampleIndex <- which(sampleNames == input$sampleHistograms)
       }
       
-      dataMethylRaw <- getData(methylRaw[[sampleIndex]])
-      totalCoverage <- sum(dataMethylRaw$coverage)
-      methylationDF <- data.frame(
-        "Percent_Methylation" = 100*dataMethylRaw$numCs / (dataMethylRaw$numCs + dataMethylRaw$numTs),
-        "Coverage" = dataMethylRaw$coverage
-      )
+      # dataMethylRaw <- getData(methylRaw[[sampleIndex]])
+      # totalCoverage <- sum(dataMethylRaw$coverage)
+      # methylationDF <- data.frame(
+      #   "Percent_Methylation" = 100*dataMethylRaw$numCs / (dataMethylRaw$numCs + dataMethylRaw$numTs),
+      #   "Coverage" = dataMethylRaw$coverage
+      # )
 
+      methylationDF <- methylationList[[sampleIndex]]
+      
       methylationHistogram <- methylationDF %>% ggplot(aes(x = Percent_Methylation)) +
         stat_bin(
           color = "black",
@@ -356,27 +393,27 @@ observe({
                  vjust=-0.5, boundary = 0, closed = "left") +
         theme_classic() + labs(
         title = "Histogram of % CpG methylation",
-        subtitle = input$sample,
+        subtitle = input$sampleHistograms,
         x = "% methylation per base",
         y = "Count"
       ) + scale_x_continuous(breaks = seq(0, 100, by = 20)) +
         # scale_y_continuous(breaks = seq(0, after_stat(round_any(max(count), accuracy = 100, f = ceiling)), by = 100))
         scale_y_continuous(breaks = seq(0, 900, by = 100)
       ) + theme(
-        plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-        plot.subtitle = element_text(size = 10, face = "bold", hjust = 0.5),
-        axis.title.x = element_text(vjust = -0.5),
+        plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 13, face = "bold", hjust = 0.5),
+        axis.title.x = element_text(size = 15, vjust = -0.5),
         # axis.ticks.x = 
         axis.ticks.length.x = unit(5, "pt"),
         axis.text.x = element_text(vjust = -0.5),
         axis.ticks.length.y = unit(5, "pt"),
-        axis.title.y = element_text(vjust = 1.5, hjust = 0.5)
+        axis.title.y = element_text(size = 15, vjust = 1.5, hjust = 0.5)
       )
       
       output$methylationHistogram <- renderPlot({
         methylationHistogram
       }, height = function() {
-            session$clientData$output_methylationHistogram_width * 0.6
+            session$clientData$output_methylationHistogram_width * 0.5
          }
       )
       
@@ -403,7 +440,7 @@ observe({
                  vjust=-0.5, boundary = 1, closed = "left") +
         theme_classic() + labs(
         title = "Histogram of CpG coverage",
-        subtitle = input$sample,
+        subtitle = input$sampleHistograms,
         x = "log10 of read coverage per base",
         y = "Count"
       ) + scale_x_continuous(breaks = seq(1, ceiling(max(coverageDF$log10_Coverage)), by = 0.5),
@@ -413,20 +450,20 @@ observe({
                            #                    expand = c(0, 0),
                            #                    limits = c(0, after_stat(max(count)))
         ) + theme(
-          plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-          plot.subtitle = element_text(size = 10, face = "bold", hjust = 0.5),
-          axis.title.x = element_text(vjust = -0.5),
+          plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+          plot.subtitle = element_text(size = 13, face = "bold", hjust = 0.5),
+          axis.title.x = element_text(size = 15, vjust = -0.5),
           # axis.ticks.x = 
           axis.ticks.length.x = unit(5, "pt"),
           axis.text.x = element_text(vjust = -0.5),
           axis.ticks.length.y = unit(5, "pt"),
-          axis.title.y = element_text(vjust = 1.5, hjust = 0.5)
+          axis.title.y = element_text(size = 15, vjust = 1.5, hjust = 0.5)
         )
       
       output$coverageHistogram <- renderPlot({
         coverageHistogram
       }, height = function() {
-        session$clientData$output_coverageHistogram_width * 0.6
+        session$clientData$output_coverageHistogram_width * 0.5
       }
       )
 

@@ -56,6 +56,9 @@ library(htmltools)
 library(data.table)
 library(scales) # heatmap
 library(svglite) # for Homer
+library(ComplexHeatmap) # conflift with monaLisa
+library(monaLisa) # for homerToPFMatrixList
+library(InteractiveComplexHeatmap)
 
 # console.error = function () {
 #   require("system").stderr.write(Array.prototype.join.call(arguments, ' ') + '\n');
@@ -193,7 +196,11 @@ ui <- dashboardPage(
     # tags$head(tags$link(rel = "shortcut icon", href = "sushi.png")),
     # tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "main.css")),
     # use_waiter(),
-    
+    # tags$head(
+    #   tags$style(
+    #     "body {overflow-y: hidden;}"
+    #   )
+    # ),
     tabItems(
       source("ui-DMRseq.R", local = TRUE)$value,
       # source("ui-great.R", local = TRUE)$value,

@@ -121,12 +121,23 @@ greatUI <- function(id) {
             # collapsed = FALSE,
             
             # plotOutput(
-            plotlyOutput(
+            # plotlyOutput(
+            #   outputId = ns("dotPlot")
+            #   # inline = F
+            #   # width = "100%",
+            #   # height = "auto"
+            # )
+            plotOutput(
               outputId = ns("dotPlot")
+              # hover = hoverOpts(id=ns("hoverDotPlot"))
               # inline = F
               # width = "100%",
               # height = "auto"
             )
+            # verbatimTextOutput(
+            #   outputId = "infoDotPlot", 
+            #   placeholder = FALSE
+            # )
           ) # close tabPanel dot plot
         ) # close tabBox 
       ) # close plot column
@@ -185,7 +196,7 @@ greatServer <- function(id, greatResult, enrichmentTable) {
       # greatResult <- inputDataReactive()$greatResult
       # enrichmentTable <- inputDataReactive()$enrichmentTable
       
-      head(enrichmentTable)
+      # head(enrichmentTable)
       
       # greatResult <- reactive({
       #   # If no file is selected, don't do anything
@@ -464,7 +475,7 @@ greatServer <- function(id, greatResult, enrichmentTable) {
               geom_point(show.legend = T, alpha = 0.7, stroke = 1.5) +
               coord_flip(expand = T) +
               xlab("") +
-              ylab(expression(Log[2] ~ "Fold-change")) +
+              ylab("log2 Fold-change") +
               # facet_grid(collection ~ , labeller = label_wrap_gen(width = 12, multi_line = T), scales = "free", space = "free_y") +
               # facet_grid(collection ~ Comparison, labeller = label_wrap_gen(width = 12, multi_line = T), scales = "free", space = "free_y") +
               scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 70)) +
@@ -472,41 +483,82 @@ greatServer <- function(id, greatResult, enrichmentTable) {
               theme(axis.text = element_text(color = "black"),
                     legend.title = element_text(color = "black"),
                     axis.title = element_text(color = "black", face = "bold")
-              ) + 
-              labs(
-                color = expression(-Log[10] ~ "adjusted" ~ italic(P) ~ " "),
-                size = "Annotated genes"
               ) +
-              scale_colour_gradientn(
-                colours = myPalette(n = nrow(dataDotPlot)),
-                breaks = c(ceiling(min(-log10(dataDotPlot$p_adjust))), floor(max(-log10(dataDotPlot$p_adjust))))
-              ) +
+              # scale_colour_gradientn(
+              #   colours = myPalette(n = nrow(dataDotPlot)),
+              #   breaks = c(ceiling(min(-log10(dataDotPlot$p_adjust))), floor(max(-log10(dataDotPlot$p_adjust))))
+              # ) + 
               scale_color_gradientn(
-                trans = "log",
+                # trans = "log",
                 colors = myPalette(n = nrow(dataDotPlot)),
                 # breaks = c(ceiling(min(log(observed_region_hits))), floor(max(log(observed_region_hits))))) +
                 # breaks = c(min(observed_region_hits), max(observed_region_hits))
-                breaks = waiver()
-              ) +
-              guides(size = guide_legend(reverse=TRUE))
+                breaks = waiver(),
+                guide = "colourbar"
+              ) + 
+              scale_size_continuous(
+                range = c(1, 6),
+                trans = "identity",
+                guide = "legend"
+              )
+              labs(
+                color = "-log10 adjusted P-value",
+                size = "Annotated genes"
+              ) #+ 
+              # guides(
+              #   size = guide_legend(
+              #     title = waiver()
+              #   ),
+              #   color = guide_legend(
+              #     title = waiver(),
+              #   )
+              # )
             
-            dotPlot <- ggplotly(dotPlot,
-                                tooltip = "text",
-                                # tooltip = c("id","description","p_value","fold_enrichment"),
-                                # width = session$clientData$output_volcanoPlot_width,
-                                # height = session$clientData$output_volcanoPlot_height,
-                                interactive = T) 
-            # %>%
-            #   layout(legend = list(
-            #     orientation = "h",
-            #     x = -1,
-            #     y = 1
-            #   ) 
-            #   )
+            ### this removes the color legend:
+            # color = guide_legend(
+            #   title = waiver()
+            # )
+            
+            # dotPlot <- ggplotly(dotPlot,
+            #                     tooltip = "text",
+            #                     # tooltip = c("id","description","p_value","fold_enrichment"),
+            #                     # width = session$clientData$output_volcanoPlot_width,
+            #                     # height = session$clientData$output_volcanoPlot_height,
+            #                     interactive = T)  #%>% 
+                  # layout(
+                  #   legend = list(
+                  #     orientation = 'v'
+                  #   )
+                  # )
 
-            output$dotPlot <- renderPlotly({
+              # layout(legend = list(
+              #   orientation = "h",
+              #   x = -1,
+              #   y = 1
+              # )
+              # )
+
+            # output$dotPlot <- renderPlotly({
+            #   dotPlot
+            # })
+            
+            output$dotPlot <- renderPlot({
               dotPlot
             })
+            
+            # observeEvent(input$hoverDotPlot, {
+            #   hover_data <- nearPoints(dataDotPlot, input$hoverDotPlot, threshold = 10, maxpoints = 1)
+            #   
+            #   if (!is.null(hover_data)) {
+            #     info_text <- hover_data$fold_enrichment
+            #   } else {
+            #     info_text <- ""
+            #   }
+            #   
+            #   output$infoDotPlot <- renderPrint({
+            #     info_text
+            #   })
+            # })
             
             # output$dotPlot <- renderPlot({
             #   dotPlot
@@ -516,6 +568,22 @@ greatServer <- function(id, greatResult, enrichmentTable) {
             # # }
             # )
         }) # close Event number 2
+        
+        # observeEvent(input$hoverDotPlot, {
+        #   hover_data <- nearPoints(dataDotPlot, input$hoverDotPlot, threshold = 10, maxpoints = 1)
+        #   
+        #   if (!is.null(hover_data)) {
+        #     info_text <- hover_data$fold_enrichment
+        #   } else {
+        #     info_text <- ""
+        #   }
+        #     
+        #   output$infoDotPlot <- renderPrint({
+        #     info_text
+        #   })
+        # })
+        
+
         
         observeEvent( # Event number 2
           {
