@@ -59,6 +59,9 @@ library(svglite) # for Homer
 library(ComplexHeatmap) # conflift with monaLisa
 library(monaLisa) # for homerToPFMatrixList
 library(InteractiveComplexHeatmap)
+library(readr) # for read_tsv
+library(sortable)
+library(kableExtra)
 
 # console.error = function () {
 #   require("system").stderr.write(Array.prototype.join.call(arguments, ' ') + '\n');
@@ -83,60 +86,108 @@ reactiveConsole(TRUE)
 #   spin_chasing_dots(),
 #   span("Loading stuff...", style="color:white;")
 # )
-source("output_module.R")
 
+# TODO: un-comment this again
+# source("output_module.R")
 
 ui <- dashboardPage(
   # skin = "black",
   fullscreen = T,
   # help = T,
   header = dashboardHeader(
-    title = "DNAme"
+    title = "DNAme",
     # titleWidth = 200
-    # socialButton(
+    # shinydashboardPlus::socialButton(
     #   url = "https://github.com/jonasbucherETH",
     #   type = "github"
-    # )
-    # tags$li(
-    #   a(
-    #     href = 'mailto:sequencing@fgcz.ethz.ch?subject=exploreDEG-shiny-app-feedback',
-    #     "Request Features/Report Bugs"),
-    #   class = "dropdown"
     # ),
-    # tags$li(
-    #   a(href = 'http://www.fgcz.ch',
-    #     target = "_blank",
-    #     img(src = 'fgcz_logo.png', title = "FGCZ", height = "30px"),
-    #     style = "padding-top:10px; padding-bottom:5px;"),
-    #   class = "dropdown"),
-    # tags$li(
-    #   a(href = 'http://www.ethz.ch/en.html',
-    #     target = "_blank",
-    #     img(src = 'eth_logo.png', title = "FGCZ", height = "22px"),
-    #     style = "padding-top:13px; padding-bottom:10px;"),
-    #   class = "dropdown"),
-    # tags$li(
-    #   a(href = 'http://www.uzh.ch/en.html',
-    #     target = "_blank",
-    #     img(src = 'University_of_Zurich_Logo.png', title = "FGCZ", height = "30px"),
-    #     style = "padding-top:10px; padding-bottom:5px;"),
-    #   class = "dropdown")
+    tags$li(
+      a(
+        href = 'mailto:sequencing@fgcz.ethz.ch?subject=exploreDEG-shiny-app-feedback',
+        "Request Features/Report Bugs"),
+      class = "dropdown"
+    ),
+    tags$li(
+      a(href = 'http://www.fgcz.ch',
+        target = "_blank",
+        img(src = 'fgcz_logo.png', title = "FGCZ", height = "30px"),
+        style = "padding-top:10px; padding-bottom:5px;"),
+      class = "dropdown"),
+    tags$li(
+      a(href = 'http://www.ethz.ch/en.html',
+        target = "_blank",
+        img(src = 'eth_logo.png', title = "FGCZ", height = "22px"),
+        style = "padding-top:13px; padding-bottom:10px;"),
+      class = "dropdown"),
+    tags$li(
+      a(href = 'http://www.uzh.ch/en.html',
+        target = "_blank",
+        img(src = 'University_of_Zurich_Logo.png', title = "FGCZ", height = "30px"),
+        style = "padding-top:10px; padding-bottom:5px;"),
+      class = "dropdown")
   ),
   sidebar = dashboardSidebar(
     width = 200,
     shinyjs::useShinyjs(),
     sidebarMenu(
       id = "tabs",
+      # menuItemOutput("generalOptions"),
+      # menuItem(
+      #   text = "General options",
+      #   tabName = "tab-NoContext",
+      #   startExpanded = TRUE
+      # )
+      # menuItemOutput("generalOptions"),
+      # uiOutput("generalOptions"),
       menuItem(
-        text = "DMR",
+        text = "Options",
+        # tabName = "tab-Contexts",
+        startExpanded = TRUE,
+        radioGroupButtons(
+          inputId = "selectContext",
+          label = "Cytosine context",
+          choices = "CpG",
+          # choices = c("CpG", "CHG", "CHH"),
+          # selected = "CpG",
+          status = "primary"
+        ),
+        radioGroupButtons(
+          inputId = "selectMetyhlation",
+          label = "Methylation",
+          # choices = contexts,
+          choices = c("Hypo", "Hyper", "All"),
+          # selected = "Hypo",
+          status = "primary"
+        )
+      ),
+      # menuItem(
+      #   text = "Cytosine context",
+      #   tabName = "tab-Contexts",
+      #   startExpanded = TRUE,
+      #   radioGroupButtons(
+      #     inputId = "selectContext",
+      #     label = NULL,
+      #     # choices = contexts,
+      #     choices = "CpG",
+      #     selected = "CpG",  # You can set the default selected value here
+      #     status = "primary"
+      #   )
+      # ),
+      menuItem(
+        text = "Summary & settings",
+        tabName = "tab-Overview",
+        icon = icon("list")
+      ),
+      menuItem(
+        text = "DMRs",
         tabName = "tab-DMRseq",
         icon = icon("chart-area")
       ),
       menuItem(
-        text = "rGREAT",
+        text = "Functional analysis",
         tabName = "tab-great",
         # startExpanded = TRUE,
-        icon = icon("dna"),
+        icon = icon("chart-pie"),
         startExpanded = TRUE,
         # bs4SidebarMenuSubItem(
         #   text,
@@ -149,17 +200,17 @@ ui <- dashboardPage(
         menuSubItem(
           text = "Biological Processes",
           tabName = "BP",
-          icon = icon("dna")
+          icon = icon("disease")
         ),
         menuSubItem(
-          text = "Cellular Component",
+          text = "Cellular Components",
           tabName = "CC",
-          icon = icon("dna")
+          icon = icon("microscope")
         ),
         menuSubItem(
-          text = "Molecular Function",
+          text = "Molecular Functions",
           tabName = "MF",
-          icon = icon("dna")
+          icon = icon("dna", lib = "font-awesome")
         )
       ),
       # menuItem(
@@ -187,7 +238,7 @@ ui <- dashboardPage(
       menuItem(
         text = "Motif analysis",
         tabName = "tab-HOMER",
-        icon = icon("chart-simple")
+        icon = icon("text-height")
       )
     )
   ),
@@ -202,25 +253,26 @@ ui <- dashboardPage(
     #   )
     # ),
     tabItems(
-      source("ui-DMRseq.R", local = TRUE)$value,
+      source("ui-Overview.R", local = TRUE)$value,
+      source("ui-DMRseq.R", local = TRUE)$value
       # source("ui-great.R", local = TRUE)$value,
       # output_module_UI("output_BP"),
       # output_module_UI("output_CC"),
       # output_module_UI("output_MF"),
-      tabItem(
-        tabName = "BP",
-        greatUI("output_BP")
-      ),
-      tabItem(
-        tabName = "CC",
-        greatUI("output_CC")
-      ),
-      tabItem(
-        tabName = "MF",
-        greatUI("output_MF")
-      ),
-      source("ui-methylKit.R", local = TRUE)$value,
-      source("ui-HOMER.R", local = TRUE)$value
+      # tabItem(
+      #   tabName = "BP",
+      #   greatUI("output_BP")
+      # ),
+      # tabItem(
+      #   tabName = "CC",
+      #   greatUI("output_CC")
+      # ),
+      # tabItem(
+      #   tabName = "MF",
+      #   greatUI("output_MF")
+      # ),
+      # source("ui-methylKit.R", local = TRUE)$value,
+      # source("ui-HOMER.R", local = TRUE)$value
     )
   ),
   controlbar = dashboardControlbar()
@@ -243,30 +295,81 @@ ui <- dashboardPage(
 
 server <- function(input, output, session) {
   source("server-inputData.R", local = TRUE)
+  source("server-Overview.R", local = TRUE)
   source("server-DMRseq.R", local = TRUE)
+  
+  # updateRadioGroupButtons(
+  #   session = getDefaultReactiveDomain(),
+  #   inputId = "selectContext",
+  #   label = NULL, 
+  #   choices = contexts,
+  #   choices = c("CpG", "CHG", "CHH"),
+  #   selected = "CpG",
+  #   status = "primary"
+  # )
+  
+  # returnList <- inputDataReactive()
+  # 
+  # allCytosineContexts <- inputDataReactive()$allCytosineContexts
+  # if (allCytosineContexts) {
+  #   contexts <- c("CpG", "CHG", "CHH")
+  #   updateSelectInput("list_selection", "Select a context:",
+  #                     choices = c("CpG", "CHG", "CHH"),
+  #                     session = session)
+  # } else {
+  #   contexts <- c("CpG")
+  # }
+  # 
+  # # selected_list <- reactiveVal(returnList$CpG)
+  # # selected_list <- returnList[[input$list_selection]]
+  # 
+  # observeEvent(input$list_selection, {
+  #   selected_list <- returnList[[input$list_selection]]
+  # })
+  
+  
+  # # Render the selected list output in a nice way
+  # output$display_selection <- renderText({
+  #   list_name <- input$list_selection
+  #   paste("You have selected", list_name)
+  # })
+  # 
+  # # Render the selected list as a table
+  # output$display_table <- renderTable({
+  #   selected_list()
+  # })
+  
   # source("server-great.R", local = TRUE)
   # callModule(output_module, "output_BP", greatResult_BP, enrichmentTable_BP)
   # callModule(output_module, "output_CC", greatResult_CC, enrichmentTable_CC)
   # callModule(output_module, "output_MF", greatResult_MF, enrichmentTable_MF)
   
-  greatResult_BP <- inputDataReactive()$greatResult_BP
-  enrichmentTable_BP <- inputDataReactive()$enrichmentTable_BP
-  greatResult_CC <- inputDataReactive()$greatResult_CC
-  enrichmentTable_CC <- inputDataReactive()$enrichmentTable_CC
-  greatResult_MF <- inputDataReactive()$greatResult_MF
-  enrichmentTable_MF <- inputDataReactive()$enrichmentTable_MF
+  # greatResultBP <- inputDataReactive()$greatResultBP
+  # # enrichmentTableBP <- inputDataReactive()$enrichmentTableBP
+  # greatResultCC <- inputDataReactive()$greatResultCC
+  # # enrichmentTableCC <- inputDataReactive()$enrichmentTableCC
+  # greatResultMF <- inputDataReactive()$greatResult_F
+  # # enrichmentTableMF <- inputDataReactive()$enrichmentTableMF
   
-  greatServer(id = "output_BP", greatResult = greatResult_BP, enrichmentTable = enrichmentTable_BP)
-  greatServer(id = "output_CC", greatResult = greatResult_CC, enrichmentTable = enrichmentTable_CC)
-  greatServer(id = "output_MF", greatResult = greatResult_MF, enrichmentTable = enrichmentTable_MF)
+  # greatResultBP <- selected_list$greatResultBP
+  # greatResultCC <- selected_list$greatResultCC
+  # greatResultMF <- selected_list$greatResultMF
+  # 
+  # enrichmentTableBP <- getEnrichmentTable(greatResultBP)
+  # enrichmentTableCC <- getEnrichmentTable(greatResultCC)
+  # enrichmentTableMF <- getEnrichmentTable(greatResultMF)
+  # 
+  # greatServer(id = "output_BP", greatResult = greatResultBP, enrichmentTable = enrichmentTableBP)
+  # greatServer(id = "output_CC", greatResult = greatResultCC, enrichmentTable = enrichmentTableCC)
+  # greatServer(id = "output_MF", greatResult = greatResultMF, enrichmentTable = enrichmentTableMF)
   # if(!is.null(greatResult_RE)) {
   #   greatServer(id = "output_RE", greatResult = greatResult_RE, enrichmentTable = enrichmentTable_RE)
   # }
   # if(!is.null(greatResult_MF)) {
   #   greatServer(id = "output_MF", greatResult = greatResult_MF, enrichmentTable = enrichmentTable_MF)
   # }
-  source("server-methylKit.R", local = TRUE)
-  source("server-HOMER.R", local = TRUE)
+  # source("server-methylKit.R", local = TRUE)
+  # source("server-HOMER.R", local = TRUE)
 }
 
 breakStrings <- function(x, minSizeForBreak = 20, lb = "\n", nb = 2) {

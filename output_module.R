@@ -13,23 +13,22 @@ greatUI <- function(id) {
           id = ns("tabBoxGreat"),
           # id = NULL,
           # title = NULL,
-          width = 10,
+          width = NULL,
           maximizable = TRUE,
           status = "primary",
           headerBorder = T,
-          # icon = NULL,
-          ###
+
           # selected = "Volcano Plot",
           selected = NULL,
           side = "left",
           type = "tabs",
-          ###
           solidHeader = T, # solid color background
           background = NULL, #  background color of the box
-          dropdownMenu = boxDropdown(
-            icon = shiny::icon("wrench"),
-            cardDropdownItem(id = ns("downloadPlotGreat"), href = NULL, icon = shiny::icon("download-alt"))
-          ),
+          height = "800px",
+          # dropdownMenu = boxDropdown(
+          #   icon = shiny::icon("wrench"),
+          #   cardDropdownItem(id = ns("downloadPlotGreat"), href = NULL, icon = shiny::icon("download-alt"))
+          # ),
           sidebar = bs4CardSidebar(
             id = ns("sidebarGreatPlots"),
             width = 25, # Sidebar opening width in percentage
@@ -84,15 +83,22 @@ greatUI <- function(id) {
           # .list = c(
           tabPanel(
             title = "Volcano Plot",
-            # width = NULL,
-            # solidHeader = TRUE,
-            # status = "primary",
+            width = NULL,
+            solidHeader = TRUE,
+            status = "primary",
             # collapsible = FALSE,
             # collapsed = FALSE,
-            plotlyOutput(
+            # plotlyOutput(
+            #   outputId = ns("volcanoPlot"),
+            #   inline = F
+            #   # width = "100%",
+            #   # height = "auto"
+            # )
+            plotOutput(
               outputId = ns("volcanoPlot"),
-              inline = F
-              # width = "100%",
+              inline = F,
+              width = "70%",
+              height = "700px"
               # height = "auto"
             )
 
@@ -219,6 +225,10 @@ greatServer <- function(id, greatResult, enrichmentTable) {
       
       observe({
         
+        observeEvent(input$list_selection, {
+          selected_list <- returnList[[input$list_selection]]
+        })
+        
         updateSelectizeInput(
           session = session,
           inputId = "selectizeTerm", 
@@ -275,7 +285,7 @@ greatServer <- function(id, greatResult, enrichmentTable) {
           )
         })
         
-        observeEvent( # Event number 1
+        observeEvent( # Event volcanoPlot
           {
             # input$min_region_hits
             input$xFactorVolcano
@@ -372,46 +382,48 @@ greatServer <- function(id, greatResult, enrichmentTable) {
                     legend.title.align = 0.5, legend.text.align = 0.5,
                     plot.title = element_text(size = 16, face = "bold", hjust = 0.5, margin = margin(b = 20)),
                     plot.margin = unit(c(1, 0.5, 0.5, 0.5), "cm"), 
-                    axis.title.y = element_text(margin = margin(r = 10)),
-                    axis.title.x = element_text(margin = margin(t = 10))) +
+                    axis.title.y = element_text(margin = margin(r = 10), size = 20),
+                    axis.title.x = element_text(margin = margin(t = 10), size = 20),
+                    legend.text = element_text(size = 15),
+                    legend.title = element_text(size = 20)) +
               # ggtitle(ifelse(is.null(input$titleVolcanoPlot), "Volcano plot", input$titleVolcanoPlot)) +
               ggtitle(input$titleVolcanoPlot) +
               geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "grey") +
-              annotate("text", x = range(x)[1], y = -log10(0.05), label = qq("Region hits >= @{min_region_hits}"), hjust = 0, vjust = 1.5, size = 5) +
-              annotate("text", x = Inf, y = -log10(0.05), label = qq("@{input$yFactorVolcano} = 0.05"), hjust = 1.05, vjust = 1.5, size = 4)
+              annotate("text", x = range(x)[1], y = -log10(0.05), label = qq("Region hits >= @{min_region_hits}"), hjust = 0, vjust = 1.5, size = 6) +
+              annotate("text", x = Inf, y = -log10(0.05), label = qq("@{input$yFactorVolcano} = 0.05"), hjust = 1.05, vjust = 1.5, size = 6)
             
             if(input$xFactorVolcano == "fold_enrichment") {
               volcanoPlot <- volcanoPlot + geom_vline(xintercept = 1, linetype = "dashed", color = "grey")
             }
             
-            volcanoPlotly <- ggplotly(volcanoPlot,
-                                      tooltip = c("text"),
-                                      # tooltip = c("id","description","p_value","fold_enrichment"),
-                                      width = session$clientData$output_volcanoPlot_width,
-                                      height = session$clientData$output_volcanoPlot_height,
-                                      interactive = F) %>%
-              layout(legend = list(
-                orientation = "h",
-                x = -1,
-                y = 1
-              ) 
-              )
+            # volcanoPlotly <- ggplotly(volcanoPlot,
+            #                           tooltip = c("text"),
+            #                           # tooltip = c("id","description","p_value","fold_enrichment"),
+            #                           width = session$clientData$output_volcanoPlot_width,
+            #                           height = session$clientData$output_volcanoPlot_height,
+            #                           interactive = F) %>%
+            #   layout(legend = list(
+            #     orientation = "h",
+            #     x = -1,
+            #     y = 1
+            #   ) 
+            #   )
             
-            output$volcanoPlot <- renderPlotly({
-              volcanoPlotly
+            # output$volcanoPlot <- renderPlotly({
+            #   volcanoPlotly
+            # }
+            # # , height = function() {
+            # #       session$clientData$output_volcanoPlot_width * 0.8
+            # #    }
+            # )
+            
+            output$volcanoPlot <- renderPlot({
+              volcanoPlot
             }
             # , height = function() {
-            #       session$clientData$output_volcanoPlot_width * 0.8
-            #    }
+            #   session$clientData$output_volcanoPlot_width * 0.6
+            #   }
             )
-            
-            # output$volcanoPlot <- renderPlot({
-            #   volcanoPlot
-            # }
-            # , height = function() {
-            #   session$clientData$output_volcanoPlot_width * 0.8
-            # }
-            # )
             
             
             # cdata <- session$clientData
@@ -421,7 +433,7 @@ greatServer <- function(id, greatResult, enrichmentTable) {
             #     facet_wrap(~Species)
             #   ggplotly(p, width = cdata$output_pid_width, height = cdata$output_pid_height)
             
-          }) # close Event number 1
+          }) # close Event volcanoPlot
         
         selected_cols <- reactive({
           cols <- c("id", input$columns_to_display1)

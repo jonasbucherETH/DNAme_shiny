@@ -3,7 +3,8 @@ observe({
   methylAll <- inputDataReactive()$methylAll
   # str_end <- rep(paste0("_", sampleIDs), times = 3)
   # str_sub(colnames(methylAll)[5:length(methylAll)], start = -2, end = -1) <- str_end
-  sampleNames <- c("test1","test2","ctrl1","ctrl2")
+  # sampleNames <- c("test1","test2","ctrl1","ctrl2")
+  sampleNames <- inputDataReactive()$sampleNames
   
   # observeEvent(input$pickFactorsPCA, {
   #   output$res_classic <- renderPrint(input$pickFactorsPCA)
@@ -132,7 +133,7 @@ observe({
   updateSelectizeInput( # maybe this is not needed (always give all options)
     # session = getDefaultReactiveDomain(),
     session = session,
-    inputId = "selectizeColoursPCA",
+    inputId = "selectizecolorsPCA",
     choices = sampleNames,
     selected = sampleNames,
     # selected = character(0),
@@ -140,16 +141,16 @@ observe({
     # server = TRUE
   )
   
-  output$colourPanelPCA <- renderUI({
-    levPCA <- sort(unique(input$selectizeColoursPCA)) # sorting so that "things" are unambigious
+  output$colorPanelPCA <- renderUI({
+    levPCA <- sort(unique(input$selectizecolorsPCA)) # sorting so that "things" are unambigious
     # levPCA <- sampleNames
-    # colourValuesPCA <- gg_fill_hue(length(levPCA))
+    # colorValuesPCA <- gg_fill_hue(length(levPCA))
     colsPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
     
     # New IDs "colX1" so that it partly coincide with input$selectizePCA...
     lapply(seq_along(levPCA), function(i) {
-      colourInput(inputId = paste0("colPCA_", levPCA[i]),
-                  label = paste0("Choose colour for ", levPCA[i]),
+      colorInput(inputId = paste0("colPCA_", levPCA[i]),
+                  label = paste0("Choose color for ", levPCA[i]),
                   value = colsPCA[i]
       )
     })
@@ -182,9 +183,9 @@ observe({
   #   }
   # )
   
-  # observeEvent( # Event manual colours PCA
+  # observeEvent( # Event manual colors PCA
   #   {
-  #     input$applyManualColoursPCA
+  #     input$applyManualcolorsPCA
   #   },
   #   ignoreInit = T, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
   #   ignoreNULL = T, # default = TRUE
@@ -199,44 +200,44 @@ observe({
       input$pickFactor2PCA
       # input$pickFactorsPCA
       input$colorPalettePCA
-      input$manualColoursPCA
+      input$manualcolorsPCA
       input$sampleLabelsPCA
       input$textSizePCA
       input$pointSizePCA
       input$pcaTitle
-      # input$actionButtonColours
+      # input$actionButtoncolors
       #input$selectThemePCA
     },
     ignoreInit = T, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
     ignoreNULL = T, # default = TRUE
     {
       
-      # manualColoursPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizeColoursPCA), collapse = ", "), ")")
-      # manualColoursPCA <- eval(parse(text = manualColoursPCA))
+      # manualcolorsPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizecolorsPCA), collapse = ", "), ")")
+      # manualcolorsPCA <- eval(parse(text = manualcolorsPCA))
       
-      # paletteColoursPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+      # palettecolorsPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
       
-      # colourValuesPCA <- reactive({
-      #   if(input$manualColoursPCA==TRUE) {
-      #     cPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizeColoursPCA), collapse = ", "), ")")
+      # colorValuesPCA <- reactive({
+      #   if(input$manualcolorsPCA==TRUE) {
+      #     cPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizecolorsPCA), collapse = ", "), ")")
       #     cPCA <- eval(parse(text = cPCA))
       #   } else {
-      #     # cPCA <- paletteColoursPCA
+      #     # cPCA <- palettecolorsPCA
       #     cPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
       #   }
       #   cPCA
       # })
       
-      colourValuesPCA <- reactive({
+      colorValuesPCA <- reactive({
         # print("up")
-        # input$actionButtonColours
+        # input$actionButtoncolors
         clickCount()
-        # if (input$actionButtonColours == 0) {
+        # if (input$actionButtoncolors == 0) {
         if (clickCount() == 0) {
           cPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
           # print("if")
         } else {
-          cPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizeColoursPCA), collapse = ", "), ")")
+          cPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizecolorsPCA), collapse = ", "), ")")
           cPCA <- eval(parse(text = cPCA))
           # print("else")
         }
@@ -244,12 +245,12 @@ observe({
       })
       
       # Observe the action button click event and update the reactive expression
-      observeEvent(input$actionButtonColours, {
+      observeEvent(input$actionButtoncolors, {
         # Increment the click count by 1
         clickCount(clickCount() + 1)
       })
       
-      # colourValuesPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
+      # colorValuesPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
       # selectedPCs <- sort(input$pickFactorsPCA)
 
       # print(input$colorPalettePCA)
@@ -258,7 +259,7 @@ observe({
         # ggplot(aes(x = .data[[selectedPCs[1]]], y = .data[[selectedPCs[2]]], color = rownames(pcaTableMeth))) +
         ggplot(aes(x = .data[[input$pickFactor1PCA]], y = .data[[input$pickFactor2PCA]], color = rownames(pcaTableMeth))) +
         geom_point(size = as.numeric(input$pointSizePCA)) +
-        scale_color_manual(values = colourValuesPCA())
+        scale_color_manual(values = colorValuesPCA())
       
       plotMethPCA <- plotMethPCA + theme_classic()
       
@@ -283,28 +284,28 @@ observe({
         color = "Samples"
       ) + theme(
         axis.text.x = element_text(
-          colour = "grey20", size = input$textSizePCA, angle = 0, hjust = .5,
+          color = "grey20", size = input$textSizePCA, angle = 0, hjust = .5,
           vjust = .5, face = "plain"
         ),
         axis.text.y = element_text(
-          colour = "grey20", size = input$textSizePCA, angle = 0, hjust = 1,
+          color = "grey20", size = input$textSizePCA, angle = 0, hjust = 1,
           vjust = 0.5, face = "plain"
         ),
         axis.title.x = element_text(
-          colour = "grey20", size = input$textSizePCA, angle = 0, hjust = .5,
+          color = "grey20", size = input$textSizePCA, angle = 0, hjust = .5,
           vjust = 0, face = "plain"
         ),
         axis.title.y = element_text(
-          colour = "grey20", size = input$textSizePCA, angle = 90,
+          color = "grey20", size = input$textSizePCA, angle = 90,
           hjust = .5, vjust = .5, face = "plain"
         ),
         legend.text = element_text(
-          colour = "grey20", size = input$textSizePCA
+          color = "grey20", size = input$textSizePCA
         ),
         legend.title = element_text(
-          colour = "grey20", size = input$textSizePCA
+          color = "grey20", size = input$textSizePCA
         ),
-        title = element_text(colour = "grey20", size = input$textSizePCA, face = "bold", hjust = 0.5, margin = margin(b = 20))
+        title = element_text(color = "grey20", size = input$textSizePCA, face = "bold", hjust = 0.5, margin = margin(b = 20))
       )
       
       plotMethPCA <- plotMethPCA +

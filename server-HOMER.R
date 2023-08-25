@@ -1,6 +1,26 @@
 observe({
-  all_motifs <- inputDataReactive()$all_motifs
+  
+  context <- "CpG"
+  allCytosineContexts <- inputDataReactive()$allCytosineContexts
+  dmRegions <- inputDataReactive()[[context]]$dmRegions
+  dataDirMe <- inputDataReactive()$dataDirMe
+  
+  # all_motifs <- inputDataReactive()$all_motifs
   # motifPlots <- inputDataReactive()$motifPlots
+  
+  # updateActionButton(
+  #   session = session,
+  #   inputId = "linkDeNovoMotifs",
+  #   label = "open de novo motif results viewer",
+  #   icon = icon("th"),
+  #   onclick ="window.open('~/data/homer/test3/homerResults.html', '_blank')"
+  # )
+  
+  url <- a("de novo motif results", href=file.path(dataDirMe, "homer/homerResults.html"))
+  output$linkDeNovoMotifs <- renderUI({
+    tagList("URL link:", url)
+  })
+  
   
   # # Define function to read SVG files and convert to grob object
   # svg_to_grob <- function(file_path) {
@@ -57,7 +77,26 @@ observe({
   
   ######################## heatmap ########################
   # Define the heatmap
-  motifs_pfm <- homerToPFMatrixList(filename = "~/data/homer/test1/homerMotifs.all.motifs", n = 100L)
+  # library(homerkit)
+  # homer_output <- read_homer_output(folder = "~/data/homer/test3")
+  
+  # library(marge)
+  # motifs_marge <- read_motif("~/data/homer/test3/homerResults/motif10.motif")
+  # motif_list <- list.files("~/data/homer/test3/homerResults", pattern = "motif([0-9]|[0-9]\\d|99).motif", full.names = T)
+  # motif_list <- list.files("~/data/homer/test3/homerResults", pattern = "*.motif", full.names = T)
+  # length(motif_list)
+  
+  # motifsDF <- data.frame()
+  # for(i in seq_along(motif_list)) {
+  #   if(i==1) {
+  #     motifsDF <- read_motif(motif_list[i])
+  #   } else {
+  #     motifsDF <- dplyr::bind_rows(motifsDF, read_motif(motif_list[i]))
+  #   }
+  # }
+  # motifsDF$BestGuess <- sapply(motifsDF$motif_name, function(x) strsplit(x, "BestGuess:")[[1]][2])
+  
+  motifs_pfm <- homerToPFMatrixList(filename = "~/data/homer/test4/homerMotifs.all.motifs", n = 100L)
   all_motifs_mat <- as.matrix(all_motifs[, c("log_p_value", "fold_enrichment")])
   all_motifs_mat[all_motifs_mat[,2]=="Inf", 2] <- 50
   rownames(all_motifs_mat) <- all_motifs$motif_name

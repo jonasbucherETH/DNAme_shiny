@@ -67,14 +67,14 @@ tabItem(
             ),
             numericInput(
               inputId = "pointSizePCA",
-              label = "Point size", min = 1, max = 6,
-              value = 3, step = 0.5,
+              label = "Point size", min = 0, max = 6,
+              value = 4, step = 0.5,
               # width = "100px"
             ),
             numericInput(
               inputId = "textSizePCA",
-              label = "Font Size", min = 4, max = 30,
-              value = 12, step = 0.5,
+              label = "Font Size", min = 8, max = 30,
+              value = 18, step = 1,
               # width = "100px"
             )
             # selectInput(
@@ -90,16 +90,16 @@ tabItem(
             #   # height = "auto"
             # ),
             # materialSwitch(
-            #   inputId = "manualColoursPCA", 
-            #   label = "Select colours manually", 
+            #   inputId = "manualcolorsPCA", 
+            #   label = "Select colors manually", 
             #   status = "primary",
             #   value = FALSE, 
             #   width = NULL
             # ),
             # conditionalPanel(
-            #   condition = "input.manualColoursPCA == true",
+            #   condition = "input.manualcolorsPCA == true",
             #   selectizeInput(
-            #     inputId = "selectizeColoursPCA",
+            #     inputId = "selectizecolorsPCA",
             #     label = "",
             #     choices = character(0),
             #     selected = character(0),
@@ -107,8 +107,8 @@ tabItem(
             #   ),
             #   uiOutput('colourPanelPCA'),
             #   bs4Dash::actionButton(
-            #     inputId = "actionButtonColours",
-            #     label = "Apply colours",
+            #     inputId = "actionButtoncolors",
+            #     label = "Apply colors",
             #     icon = NULL,
             #     # style = "unite",
             #     # color = "default",
@@ -171,16 +171,16 @@ tabItem(
               # height = "auto"
             ),
             materialSwitch(
-              inputId = "manualColoursPCA", 
-              label = "Select colours manually", 
+              inputId = "manualcolorsPCA", 
+              label = "Select colors manually", 
               status = "primary",
               value = FALSE, 
               width = NULL
             ),
             conditionalPanel(
-              condition = "input.manualColoursPCA == true",
+              condition = "input.manualcolorsPCA == true",
               selectizeInput(
-                inputId = "selectizeColoursPCA",
+                inputId = "selectizecolorsPCA",
                 label = "",
                 choices = character(0),
                 selected = character(0),
@@ -188,8 +188,8 @@ tabItem(
               ),
               uiOutput('colourPanelPCA'),
               bs4Dash::actionButton(
-                inputId = "actionButtonColours",
-                label = "Apply colours",
+                inputId = "actionButtoncolors",
+                label = "Apply colors",
                 icon = NULL,
                 # style = "unite",
                 # color = "default",

@@ -2,9 +2,9 @@ tabItem(
   tabName = "tab-HOMER",
   fluidRow( ### NOTE: 1 row has width = 12
     column(
-      width = 10,
+      width = 12,
       bs4TabCard(
-        width = 12,
+        width = NULL,
         # id = NULL,
         id = "homerTabCard",
         # title = NULL,
@@ -18,8 +18,8 @@ tabItem(
         solidHeader = T, # solid color background
         background = NULL, #  background color of the box
         tabPanel(
-          title = "Motif enrichment",
-          width = 10,
+          title = "Known motifs",
+          width = NULL,
           solidHeader = TRUE,
           status = "primary"
           # DT::dataTableOutput(
@@ -27,13 +27,19 @@ tabItem(
           # )
         ),
         tabPanel(
-          title = "Heatmap of Motifs",
-          width = 10,
+          title = "de novo motifs",
+          width = NULL,
           solidHeader = TRUE,
           status = "primary",
           # plotOutput(
           #   outputId = "heatmapMotifs"
           # )
+          
+          # actionButton(inputId='linkDeNovoMotifs', label="open de novo motif results viewer", 
+          #                     icon = icon("th"), 
+          #                     onclick ="window.open('http://google.com', '_blank')"
+          # ),
+          uiOutput("linkDeNovoMotifs"),
           InteractiveComplexHeatmapOutput(
             heatmap_id = "heatmapMotifs",
             compact = TRUE, # = no sub-heatmap for selected part
