@@ -1,0 +1,24 @@
+<tool id="shiny_app" name="Shiny App" version="0.1.0">
+    <description>Run a Shiny application</description>
+    <requirements>
+        <requirement type="package" version="4.1.0">r-base</requirement>
+        <requirement type="package" version="1.7.1">r-shiny</requirement>
+        <!-- Add any other R package requirements here -->
+    </requirements>
+    <command detect_errors="exit_code"><![CDATA[
+        Rscript '$__tool_directory__/run_shiny.R'
+            #if $input_data
+                --input='$input_data'
+            #end if
+            --output='$output'
+    ]]></command>
+    <inputs>
+        <param name="input_data" type="data" format="tabular" optional="true" label="Input data"/>
+    </inputs>
+    <outputs>
+        <data name="output" format="html" label="Shiny App Output"/>
+    </outputs>
+    <help><![CDATA[
+        This tool runs a Shiny application and returns the output as an HTML file.
+    ]]></help>
+</tool>

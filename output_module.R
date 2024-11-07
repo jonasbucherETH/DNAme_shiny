@@ -5,7 +5,7 @@ greatUI <- function(id) {
   #   # Output content for each output category
   # )
   tagList(
-    fluidRow( ### NOTE: 1 row has width = 12
+    fluidRow(
       column(
         width = 12,
         # tabsetPanel(
@@ -36,6 +36,17 @@ greatUI <- function(id) {
             startOpen = TRUE,
             icon = shiny::icon("gears"),
             easyClose = TRUE,
+            conditionalPanel(
+              condition = "input.tabBoxGreat == 'Enrichment Table'",
+              ns = NS(id),
+              prettyCheckboxGroup(
+                ns("columns_to_display1"), 
+                label = "Columns to display", 
+                choices = character(0),
+                selected = character(0),
+                status = "primary"
+              )
+            ),
             conditionalPanel(
               condition = "input.tabBoxGreat == 'Volcano Plot'",
               ns = NS(id),
@@ -81,6 +92,15 @@ greatUI <- function(id) {
             ) # close conditionalPanel Dot Plot
           ), # close boxSidebar
           # .list = c(
+          tabPanel(
+            title = "Enrichment Table",
+            width = NULL,
+            solidHeader = TRUE,
+            status = "primary",
+            DT::dataTableOutput(
+              outputId = ns("enrichmentTable")
+            )
+          ),
           tabPanel(
             title = "Volcano Plot",
             width = NULL,
@@ -147,18 +167,18 @@ greatUI <- function(id) {
           ) # close tabPanel dot plot
         ) # close tabBox 
       ) # close plot column
-    ), # close fluidRow 1
-    fluidRow( # fluidRow 2
-      column(
-        width = 12,
-        box(
-          title = "Enrichment table",
-          width = NULL,
-          solidHeader = TRUE,
-          status = "primary",
-          collapsible = FALSE,
-          collapsed = FALSE,
-          br(), 
+    ) # close fluidRow 1
+    # fluidRow( # fluidRow 2
+    #   column(
+    #     width = 12,
+    #     box(
+    #       title = "Enrichment table",
+    #       width = NULL,
+    #       solidHeader = TRUE,
+    #       status = "primary",
+    #       collapsible = FALSE,
+    #       collapsed = FALSE,
+    #       br(), 
           # awesomeCheckboxGroup(ns("columns_to_display1"), 
           #                    label = NULL, 
           #                    # choiceNames = character(0),
@@ -167,29 +187,29 @@ greatUI <- function(id) {
           #                    selected = character(0),
           #                    status = "primary"
           # ),
-          checkboxGroupButtons(ns("columns_to_display1"), 
-                               label = "Columns to display", 
-                               # choiceNames = character(0),
-                               # choiceValues = character(0),
-                               choices = character(0),
-                               selected = character(0),
-                               # checkIcon = list(
-                               #   yes = tags$i(class = "fa fa-check-square", 
-                               #                style = "color: steelblue"),
-                               #   no = tags$i(class = "fa fa-square-o", 
-                               #               style = "color: steelblue")),
-                               checkIcon = list(
-                                 yes = icon("ok",
-                                            lib = "glyphicon")),
-                               size = "sm"
-          ),
-          br(),
-          DT::dataTableOutput(
-            outputId = ns("enrichmentTable")
-          )
-        ) # close box 
-      ) # close Enrichment table column
-    ) # close fluidRow 2
+          # checkboxGroupButtons(ns("columns_to_display1"), 
+          #                      label = "Columns to display", 
+          #                      # choiceNames = character(0),
+          #                      # choiceValues = character(0),
+          #                      choices = character(0),
+          #                      selected = character(0),
+          #                      # checkIcon = list(
+          #                      #   yes = tags$i(class = "fa fa-check-square", 
+          #                      #                style = "color: steelblue"),
+          #                      #   no = tags$i(class = "fa fa-square-o", 
+          #                      #               style = "color: steelblue")),
+          #                      checkIcon = list(
+          #                        yes = icon("ok",
+          #                                   lib = "glyphicon")),
+          #                      size = "sm"
+          # ),
+          # br(),
+          # DT::dataTableOutput(
+          #   outputId = ns("enrichmentTable")
+          # )
+    #     ) # close box 
+    #   ) # close Enrichment table column
+    # ) # close fluidRow 2
   ) # close dashboardBody
 }
 
@@ -249,27 +269,38 @@ greatServer <- function(id, greatResult, enrichmentTable) {
         
         createLink <- function(val) {
           # sprintf('<a href="http://amigo.geneontology.org/amigo/term/%s" target="_blank" class="btn btn-primary"</a>', val)
-          sprintf('<a href="http://amigo.geneontology.org/amigo/term/%s" target="_blank" class="btn btn-primary">%s</a>', val, val)
+          sprintf('<a href="http://amigo.geneontology.org/amigo/term/%s" target="_blank" class="btn btn-primary btn-sm">%s</a>', val, val)
         }
         
+        pretty_names <- c(
+          "ID", 
+          "Description", 
+          "Genome Fraction", 
+          "Observed Region Hits", 
+          "Fold Enrichment", 
+          "P-Value", 
+          "Adjusted P-Value", 
+          "Mean TSS Distance", 
+          "Observed Gene Hits", 
+          "Gene Set Size", 
+          "Hypergeometric Fold Enrichment", 
+          "Hypergeometric P-Value", 
+          "Adjusted Hypergeometric P-Value"
+        )
+        
         # updateCheckboxGroupInput(
-        updateCheckboxGroupButtons(
+        updatePrettyCheckboxGroup(
           session = session,
           inputId = "columns_to_display1",
           # choiceNames = colnames(enrichmentTable)[-1],
           # choiceValues = colnames(enrichmentTable)[-1],
-          choices = colnames(enrichmentTable)[-1],
-          selected = colnames(enrichmentTable)[c(2,5,6,7)],
-          # checkIcon = list(
-          #   yes = tags$i(class = "fa fa-check-square", 
-          #                style = "color: steelblue"),
-          #   no = tags$i(class = "fa fa-square-o", 
-          #               style = "color: steelblue"))
-          checkIcon = list(
-            yes = icon("ok",
-                       lib = "glyphicon")),
-          size = "sm"
-          # inline = TRUE
+          # choices = colnames(enrichmentTable)[-1],
+          # selected = colnames(enrichmentTable)[c(2,5,6,7)]
+          # choices = nice_colnames[-1],
+          # selected = nice_colnames[c(2,5,6,7)]
+          choiceNames = pretty_names[-1],       # Display pretty names
+          choiceValues = colnames(enrichmentTable)[-1], # Use original column names as values
+          selected = colnames(enrichmentTable)[c(2,5,6,7)]  # Select all by default
         )
         
         output$menuItemReactome <- renderMenu({
@@ -347,7 +378,8 @@ greatServer <- function(id, greatResult, enrichmentTable) {
               #   breaks = c(ceiling(min(log(observed_region_hits))), floor(max(log(observed_region_hits))))) +
               scale_color_gradientn(
                 trans = "log",
-                colors = myPalette(n = nrow(observed_region_hits)),
+                # colors = myPalette(n = nrow(observed_region_hits)),
+                colors = myPalette,
                 # breaks = c(ceiling(min(log(observed_region_hits))), floor(max(log(observed_region_hits))))) +
                 # breaks = c(min(observed_region_hits), max(observed_region_hits))
                 breaks = waiver()
@@ -443,12 +475,60 @@ greatServer <- function(id, greatResult, enrichmentTable) {
         # Render the datatable
         output$enrichmentTable <- DT::renderDataTable({
           dt <- selected_cols()
-          dt$id <- createLink(dt$id)
-          # dt <- datatable(dt)
-          return(dt)
-        # }, escape = F, filter = "bottom", selection = "single"
-        }, escape = F, filter = "bottom", selection = "multiple"
-        )
+          dt$id <- createLink(dt$id) # Link to GO website
+          
+          if ("genome_fraction" %in% colnames(dt)) {
+            dt$genome_fraction <- round(as.numeric(dt$genome_fraction), 3)
+          }
+          if ("fold_enrichment" %in% colnames(dt)) {
+            dt$fold_enrichment <- round(as.numeric(dt$fold_enrichment), 2)
+          }
+          if ("p_value" %in% colnames(dt)) {
+            dt$p_value <- round(as.numeric(dt$p_value), 2)
+          }
+          if ("p_adjust" %in% colnames(dt)) {
+            dt$p_adjust <- round(as.numeric(dt$p_adjust), 2)
+          }
+          if ("fold_enrichment_hyper" %in% colnames(dt)) {
+            dt$fold_enrichment_hyper <- round(as.numeric(dt$fold_enrichment_hyper), 3)
+          }
+          if ("p_value_hyper" %in% colnames(dt)) {
+            dt$p_value_hyper <- round(as.numeric(dt$p_value_hyper), 2)
+          }
+          if ("p_adjust_hyper" %in% colnames(dt)) {
+            dt$p_adjust_hyper <- round(as.numeric(dt$p_adjust_hyper), 2)
+          }
+          
+          nice_colnames <- c(
+            "id" = "ID",
+            "description" = "Description",
+            "genome_fraction" = "Genome Fraction",
+            "observed_region_hits" = "Observed Region Hits",
+            "fold_enrichment" = "Fold Enrichment",
+            "p_value" = "P-Value",
+            "p_adjust" = "Adjusted P-Value",
+            "mean_tss_dist" = "Mean TSS Distance",
+            "observed_gene_hits" = "Observed Gene Hits",
+            "gene_set_size" = "Gene Set Size",
+            "fold_enrichment_hyper" = "Hypergeometric Fold Enrichment",
+            "p_value_hyper" = "Hypergeometric P-Value",
+            "p_adjust_hyper" = "Adjusted Hypergeometric P-Value"
+          )
+          
+          # Create datatable with custom column names
+          datatable(dt, 
+                    colnames = unname(nice_colnames[colnames(dt)]),  # Use custom names
+                    escape = FALSE, 
+                    filter = "bottom", 
+                    selection = "multiple")
+        })
+        #   dt <- selected_cols()
+        #   dt$id <- createLink(dt$id)
+        #   # dt <- datatable(dt)
+        #   return(dt)
+        # # }, escape = F, filter = "bottom", selection = "single"
+        #   }, escape = F, filter = "bottom", selection = "multiple"
+        # )
         
         
         # # React to the user's row selection
@@ -480,7 +560,8 @@ greatServer <- function(id, greatResult, enrichmentTable) {
             dotPlot <- ggplot(data = dataDotPlot, mapping = aes(
               x = description,
               y = fold_enrichment,
-              color = -log10(p_adjust),
+              # color = -log10(p_adjust),
+              color = p_adjust,
               size = observed_gene_hits,
               text = paste(description, paste0("-log10(p_adjust): ", sprintf("%.3f", -log10(p_adjust))), paste0("Fold enrichment: ", sprintf("%.3f", fold_enrichment)), paste0("Observed gene hits: ", observed_gene_hits), sep = "<br>"))
             ) +
@@ -501,7 +582,7 @@ greatServer <- function(id, greatResult, enrichmentTable) {
               #   breaks = c(ceiling(min(-log10(dataDotPlot$p_adjust))), floor(max(-log10(dataDotPlot$p_adjust))))
               # ) + 
               scale_color_gradientn(
-                # trans = "log",
+                transform = "log10",
                 colors = myPalette(n = nrow(dataDotPlot)),
                 # breaks = c(ceiling(min(log(observed_region_hits))), floor(max(log(observed_region_hits))))) +
                 # breaks = c(min(observed_region_hits), max(observed_region_hits))
@@ -622,7 +703,8 @@ greatServer <- function(id, greatResult, enrichmentTable) {
 
             output$associationsPlots <- renderPlot({
               # grid.arrange(associationsPlot[[1]], associationsPlot[[2]], associationsPlot[[3]], nrow = 1)
-              plot_grid(associationsPlot[[1]], associationsPlot[[2]], associationsPlot[[3]], nrow = 1, aligh = "v", axis = "b")
+              # plot_grid(associationsPlot[[1]], associationsPlot[[2]], associationsPlot[[3]], nrow = 1, aligh = "v", axis = "b")
+              associationsPlot
             })
           }) # close Event number 2
         
@@ -722,7 +804,8 @@ ggplot_great = function(gr_all, gr_term = NULL, gr_full_len, term_id = NULL) {
   p1 <- p1 + theme(
     axis.title.x = element_text(vjust = -1),
     axis.text.x = element_text(size = 10, vjust = -1),
-    plot.margin = margin(5, 0, 40, 0, "pt")
+    aspect.ratio = NULL
+    # plot.margin = unit(c(0, 0, 0, 0), "lines")
   )
   ################ 2
   v = cbind(
@@ -831,6 +914,7 @@ ggplot_great = function(gr_all, gr_term = NULL, gr_full_len, term_id = NULL) {
   p2 <- p2 + theme_classic()
   p2 <- p2 + theme(
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 10),
+    # plot.margin = unit(c(4, 0, 0, 0), "lines"),
     legend.position = "topright") +
     guides(fill="none")
   
@@ -880,11 +964,17 @@ ggplot_great = function(gr_all, gr_term = NULL, gr_full_len, term_id = NULL) {
   p3 <- p3 + theme_classic()
   p3 <- p3 + theme(
     axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 10),
+    # plot.margin = unit(c(0, 0, 0, 2), "lines"),
     legend.position = "topright")
   
   ################ arrange plots
   # p_all <- grid.arrange(p1, p2, p3, ncol = 3)
-  p_all <- list("p1" = p1, "p2" = p2, "p3" = p3)
+  # p_all <- list("p1" = p1, "p2" = p2, "p3" = p3)
+  p_all <- plot_grid(
+    p1, p2, p3,
+    nrow = 1, align = "v", axis = "b",
+    rel_widths = c(1, 1, 1)
+  )
   
   return(p_all)
   # grid.arrange(p1, p2, ncol = 2)

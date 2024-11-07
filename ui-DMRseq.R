@@ -48,18 +48,18 @@ tabItem(
           ), # close conditionalPanel Empirical Distribution
           conditionalPanel( # conditionalPanel DMR plot
             condition = "input.dmrseqTabCard == 'DMR plot'",
-            selectInput(
-              inputId = "dmrFactor1", 
-              label = "Select which factor to colour the samples by", 
-              choices = "", 
-              selected = ""
-            ),
-            checkboxGroupInput(
-              inputId = "dmrGroups",
-              label = "Select groups to plot",
-              choices = "",
-              selected = ""
-            ),
+            # selectInput(
+            #   inputId = "dmrFactor1", 
+            #   label = "Select which factor to colour the samples by", 
+            #   choices = "", 
+            #   selected = ""
+            # ),
+            # checkboxGroupInput(
+            #   inputId = "dmrGroups",
+            #   label = "Select groups to plot",
+            #   choices = "",
+            #   selected = ""
+            # ),
             numericInput(
               inputId = "selectRegion",
               label = "Select Region to plot",
@@ -68,6 +68,12 @@ tabItem(
               # max = NA,
               # step = NA,
               # width = NULL
+            ),
+            selectInput(
+              inputId = "annotation_track",
+              label = "Select species for annotation",
+              choices = c("None" = "", "dm3","dm6","galGal5","hg19","hg38","mm9","mm10","rn4","rn5","rn6"),
+              selected = "None"
             )
           ) # close conditionalPanel DMR plot
         ), # close sidebar

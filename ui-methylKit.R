@@ -77,44 +77,6 @@ tabItem(
               value = 18, step = 1,
               # width = "100px"
             )
-            # selectInput(
-            #   inputId = "colorPalettePCA",
-            #   label = "Select color palette for PCA",
-            #   choices = character(0),
-            #   selected = character(0)
-            # ),
-            # plotOutput(
-            #   outputId = "colorPalettesPlot",
-            #   inline = F,
-            #   width = "100%"
-            #   # height = "auto"
-            # ),
-            # materialSwitch(
-            #   inputId = "manualcolorsPCA", 
-            #   label = "Select colors manually", 
-            #   status = "primary",
-            #   value = FALSE, 
-            #   width = NULL
-            # ),
-            # conditionalPanel(
-            #   condition = "input.manualcolorsPCA == true",
-            #   selectizeInput(
-            #     inputId = "selectizecolorsPCA",
-            #     label = "",
-            #     choices = character(0),
-            #     selected = character(0),
-            #     multiple = TRUE
-            #   ),
-            #   uiOutput('colourPanelPCA'),
-            #   bs4Dash::actionButton(
-            #     inputId = "actionButtoncolors",
-            #     label = "Apply colors",
-            #     icon = NULL,
-            #     # style = "unite",
-            #     # color = "default",
-            #     size = "sm"
-            #   )
-            # )
           ) # close conditionalPanel PCA of samples
         ), # close sidebar
             
@@ -149,65 +111,22 @@ tabItem(
           width = NULL,
           solidHeader = TRUE,
           status = "primary",
-          dropdown(
-            style = "unite", icon = icon("gear"),
-            status = "danger", width = "300px",
-            animate = animateOptions(
-              enter = animations$fading_entrances$fadeInLeftBig,
-              exit = animations$fading_exits$fadeOutRightBig
-            ),
-            tags$h3("Colour options"),
-            
-            selectInput(
-              inputId = "colorPalettePCA",
-              label = "Select color palette for PCA",
-              choices = character(0),
-              selected = character(0)
-            ),
-            plotOutput(
-              outputId = "colorPalettesPlot",
-              inline = F,
-              width = "100%"
-              # height = "auto"
-            ),
-            materialSwitch(
-              inputId = "manualcolorsPCA", 
-              label = "Select colors manually", 
-              status = "primary",
-              value = FALSE, 
-              width = NULL
-            ),
-            conditionalPanel(
-              condition = "input.manualcolorsPCA == true",
-              selectizeInput(
-                inputId = "selectizecolorsPCA",
-                label = "",
-                choices = character(0),
-                selected = character(0),
-                multiple = TRUE
-              ),
-              uiOutput('colourPanelPCA'),
-              bs4Dash::actionButton(
-                inputId = "actionButtoncolors",
-                label = "Apply colors",
-                icon = NULL,
-                # style = "unite",
-                # color = "default",
-                size = "sm"
-              )
-            )
-          ), # close drowpdown
           plotOutput(
             outputId = "pcaPlot",
             inline = F,
             width = "100%"
             # height = "auto"
           ),
-          plotOutput(
-            outputId = "pcaScree",
-            inline = F,
-            width = "100%"
-            # height = "auto"
+          fluidRow(
+            column(
+              width = 6,
+              plotOutput(
+                outputId = "pcaScree",
+                inline = F,
+                width = "100%"
+                # height = "auto"
+              )
+            )
           )
           # DT::dataTableOutput("pcaLoadings")
           

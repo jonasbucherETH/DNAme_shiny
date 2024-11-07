@@ -1,10 +1,41 @@
 observe({
-  methylRaw <- inputDataReactive()$methylRaw
-  methylAll <- inputDataReactive()$methylAll
+  methylKit_rds <- inputDataReactive()$methylKit_rds
+  myPalette <- inputDataReactive()$myPalette
+  sampleNames <- inputDataReactive()$sampleNames
+  
+  methylRaw <- methylKit_rds$methylRawListDB
+  methylAll <- unite(methylRaw)
+  methylAll@sample.ids <- sampleNames
+  myDiff <- methylKit_rds$myDiff
+  myDiff@sample.ids <- sampleNames
+    
+  dataset <- inputDataReactive()$dataset
+  factorNames <- inputDataReactive()$factorNames
+  factorLevels <- inputDataReactive()$factorLevels
+  factors <- inputDataReactive()$factors
+  colourList <- inputDataReactive()$colourList
+  
+  testCovariate <- inputDataReactive()$testCovariate
+  
+  observeEvent( # Event assign colours groups
+    {
+      # input$color_select
+      input$confirm_color_assignment
+    },
+    ignoreInit = F, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
+    ignoreNULL = T, # default = TRUE
+    {
+      colorLevels <- c(factorLevels, rownames(dataset))
+      for (i in seq_along(colorLevels)) {
+        colourList[i] <- paste0(col2hex(input[[paste0("GroupColour", i)]]), "FF")
+      }
+    }
+  )
+  
   # str_end <- rep(paste0("_", sampleIDs), times = 3)
   # str_sub(colnames(methylAll)[5:length(methylAll)], start = -2, end = -1) <- str_end
   # sampleNames <- c("test1","test2","ctrl1","ctrl2")
-  sampleNames <- inputDataReactive()$sampleNames
+
   
   # observeEvent(input$pickFactorsPCA, {
   #   output$res_classic <- renderPrint(input$pickFactorsPCA)
@@ -130,32 +161,6 @@ observe({
   #   # options =  list("max-options-group" = 1)
   # )
   
-  updateSelectizeInput( # maybe this is not needed (always give all options)
-    # session = getDefaultReactiveDomain(),
-    session = session,
-    inputId = "selectizecolorsPCA",
-    choices = sampleNames,
-    selected = sampleNames,
-    # selected = character(0),
-    server = TRUE
-    # server = TRUE
-  )
-  
-  output$colorPanelPCA <- renderUI({
-    levPCA <- sort(unique(input$selectizecolorsPCA)) # sorting so that "things" are unambigious
-    # levPCA <- sampleNames
-    # colorValuesPCA <- gg_fill_hue(length(levPCA))
-    colsPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
-    
-    # New IDs "colX1" so that it partly coincide with input$selectizePCA...
-    lapply(seq_along(levPCA), function(i) {
-      colorInput(inputId = paste0("colPCA_", levPCA[i]),
-                  label = paste0("Choose color for ", levPCA[i]),
-                  value = colsPCA[i]
-      )
-    })
-  })
-  
   # observeEvent( # Event sidebar; tab change
   #   {
   #     input$methylKitTabCard
@@ -199,8 +204,6 @@ observe({
       input$pickFactor1PCA
       input$pickFactor2PCA
       # input$pickFactorsPCA
-      input$colorPalettePCA
-      input$manualcolorsPCA
       input$sampleLabelsPCA
       input$textSizePCA
       input$pointSizePCA
@@ -211,110 +214,118 @@ observe({
     ignoreInit = T, # If TRUE, then, when the eventified object is first created/initialized, don't trigger the action or (compute the value). The default is FALSE.
     ignoreNULL = T, # default = TRUE
     {
-      
-      # manualcolorsPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizecolorsPCA), collapse = ", "), ")")
-      # manualcolorsPCA <- eval(parse(text = manualcolorsPCA))
-      
-      # palettecolorsPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
-      
-      # colorValuesPCA <- reactive({
-      #   if(input$manualcolorsPCA==TRUE) {
-      #     cPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizecolorsPCA), collapse = ", "), ")")
-      #     cPCA <- eval(parse(text = cPCA))
-      #   } else {
-      #     # cPCA <- palettecolorsPCA
-      #     cPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
-      #   }
-      #   cPCA
-      # })
-      
-      colorValuesPCA <- reactive({
-        # print("up")
-        # input$actionButtoncolors
-        clickCount()
-        # if (input$actionButtoncolors == 0) {
-        if (clickCount() == 0) {
-          cPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
-          # print("if")
-        } else {
-          cPCA <- paste0("c(", paste0("input$colPCA_", sort(input$selectizecolorsPCA), collapse = ", "), ")")
-          cPCA <- eval(parse(text = cPCA))
-          # print("else")
-        }
-        cPCA
-      })
-      
-      # Observe the action button click event and update the reactive expression
-      observeEvent(input$actionButtoncolors, {
-        # Increment the click count by 1
-        clickCount(clickCount() + 1)
-      })
-      
-      # colorValuesPCA <- brewer.pal(length(sampleNames), input$colorPalettePCA)
-      # selectedPCs <- sort(input$pickFactorsPCA)
+
 
       # print(input$colorPalettePCA)
       plotMethPCA <- pcaTableMeth %>%
-        # ggplot(aes(x = .data[[input$pickFactor1PCA]], y = .data[[input$pickFactor2PCA]], color = .data[[input$colorGroupPCA]], fill = .data[[input$colorGroupPCA]], shape = .data[[input$shapeGroupPCA]])) +
-        # ggplot(aes(x = .data[[selectedPCs[1]]], y = .data[[selectedPCs[2]]], color = rownames(pcaTableMeth))) +
-        ggplot(aes(x = .data[[input$pickFactor1PCA]], y = .data[[input$pickFactor2PCA]], color = rownames(pcaTableMeth))) +
-        geom_point(size = as.numeric(input$pointSizePCA)) +
-        scale_color_manual(values = colorValuesPCA())
+        ggplot(aes(
+          x = .data[[input$pickFactor1PCA]], 
+          y = .data[[input$pickFactor2PCA]], 
+          color = rownames(pcaTableMeth)
+        )) +
+        # Add confidence ellipses
+        # stat_ellipse(aes(fill = rownames(pcaTableMeth)), 
+        #              geom = "polygon", 
+        #              alpha = 0.2, 
+        #              show.legend = FALSE) +
+        # Main points
+        geom_point(size = as.numeric(input$pointSizePCA), 
+                   alpha = 0.8) +
+        # Custom colors
+        scale_color_manual(values = unlist(colourList[rownames(pcaTableMeth)])) +
+        scale_fill_manual(values = unlist(colourList[rownames(pcaTableMeth)])) +
+        # Add cross at origin
+        geom_hline(yintercept = 0, linetype = "dashed", color = "grey70", alpha = 0.5) +
+        geom_vline(xintercept = 0, linetype = "dashed", color = "grey70", alpha = 0.5) +
+        # Better theme
+        theme_bw() +
+        theme(
+          panel.grid.major = element_line(color = "grey90", linewidth = 0.2),
+          panel.grid.minor = element_blank(),
+          panel.border = element_rect(color = "grey20", fill = NA, linewidth = 1),
+          
+          # Title formatting
+          plot.title = element_text(
+            color = "grey20", 
+            size = input$textSizePCA * 1.2, 
+            face = "bold", 
+            hjust = 0.5, 
+            margin = margin(b = 20)
+          ),
+          
+          # Axis formatting
+          axis.text = element_text(
+            color = "grey20", 
+            size = input$textSizePCA,
+            face = "plain"
+          ),
+          axis.title = element_text(
+            color = "grey20", 
+            size = input$textSizePCA,
+            face = "plain",
+            margin = margin(t = 10, r = 10, b = 10, l = 10)
+          ),
+          
+          # Legend formatting
+          legend.position = "right",
+          legend.box.background = element_rect(color = "grey80", fill = "white"),
+          legend.box.margin = margin(6, 6, 6, 6),
+          legend.text = element_text(size = input$textSizePCA),
+          legend.title = element_text(size = input$textSizePCA, face = "bold"),
+          
+          # Plot margins
+          plot.margin = unit(c(1, 1, 1, 1), "cm")
+        )
       
-      plotMethPCA <- plotMethPCA + theme_classic()
-      
+      # Add labels if requested
       if (input$sampleLabelsPCA) {
         plotMethPCA <- plotMethPCA +
-          geom_text(
+          ggrepel::geom_text_repel(  # Using ggrepel instead of geom_text
             aes(label = rownames(pcaTableMeth)),
             size = (input$textSizePCA / 3),
-            hjust = 0.2, vjust = -1.5, check_overlap = T,
+            box.padding = 0.5,
+            point.padding = 0.2,
+            min.segment.length = 1,
+            # segment.color = "grey50",
+            # segment.length = 0,
             show.legend = FALSE
-          ) 
+          )
       }
-
-      ### themes, axis labels ,legend etc
+      
+      # Add informative labels
       plotMethPCA <- plotMethPCA + labs(
         title = input$pcaTitle,
-        x = paste0(input$pickFactor1PCA, " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == input$pickFactor1PCA]), "% variance explained)"),
-        y = paste0(input$pickFactor2PCA, " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == input$pickFactor2PCA]), "% variance explained)"),
-        # x = paste0(selectedPCs[1], " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == selectedPCs[1]]), "% variance explained)"),
-        # y = paste0(selectedPCs[2], " (", sprintf("%.2f", pcaVarprop$pct[pcaVarprop$PC == selectedPCs[2]]), "% variance explained)"),
-        # color = input$colorGroupPCA, shape = input$shapeGroupPCA
+        x = paste0(
+          input$pickFactor1PCA, 
+          " (", 
+          sprintf("%.1f", pcaVarprop$pct[pcaVarprop$PC == input$pickFactor1PCA]), 
+          "% variance)"
+        ),
+        y = paste0(
+          input$pickFactor2PCA, 
+          " (", 
+          sprintf("%.1f", pcaVarprop$pct[pcaVarprop$PC == input$pickFactor2PCA]), 
+          "% variance)"
+        ),
         color = "Samples"
-      ) + theme(
-        axis.text.x = element_text(
-          color = "grey20", size = input$textSizePCA, angle = 0, hjust = .5,
-          vjust = .5, face = "plain"
-        ),
-        axis.text.y = element_text(
-          color = "grey20", size = input$textSizePCA, angle = 0, hjust = 1,
-          vjust = 0.5, face = "plain"
-        ),
-        axis.title.x = element_text(
-          color = "grey20", size = input$textSizePCA, angle = 0, hjust = .5,
-          vjust = 0, face = "plain"
-        ),
-        axis.title.y = element_text(
-          color = "grey20", size = input$textSizePCA, angle = 90,
-          hjust = .5, vjust = .5, face = "plain"
-        ),
-        legend.text = element_text(
-          color = "grey20", size = input$textSizePCA
-        ),
-        legend.title = element_text(
-          color = "grey20", size = input$textSizePCA
-        ),
-        title = element_text(color = "grey20", size = input$textSizePCA, face = "bold", hjust = 0.5, margin = margin(b = 20))
       )
       
+      # Add expanded limits with some padding
       plotMethPCA <- plotMethPCA +
-        ylim(c(min(pcaTableMeth[[input$pickFactor2PCA]] * 1.1), max(pcaTableMeth[[input$pickFactor2PCA]] * 1.2))) +
-        xlim(c(min(pcaTableMeth[[input$pickFactor1PCA]] * 1.1), max(pcaTableMeth[[input$pickFactor1PCA]] * 1.2)))
-        # ylim(c(min(pcaTableMeth[[selectedPCs[2]]] * 1.1), max(pcaTableMeth[[selectedPCs[2]]] * 1.2))) +
-        # xlim(c(min(pcaTableMeth[[selectedPCs[1]]] * 1.1), max(pcaTableMeth[[selectedPCs[1]]] * 1.2)))
-      
-        
+        scale_x_continuous(
+          limits = c(
+            min(pcaTableMeth[[input$pickFactor1PCA]]) * 1.1,
+            max(pcaTableMeth[[input$pickFactor1PCA]]) * 1.2
+          ),
+          expand = expansion(mult = c(0.1, 0.1))
+        ) +
+        scale_y_continuous(
+          limits = c(
+            min(pcaTableMeth[[input$pickFactor2PCA]]) * 1.1,
+            max(pcaTableMeth[[input$pickFactor2PCA]]) * 1.2
+          ),
+          expand = expansion(mult = c(0.1, 0.1))
+        )
       
       output$pcaPlot <- renderPlot({
         plotMethPCA
@@ -334,19 +345,54 @@ observe({
     if (nrow(pcaVarprop2) > 10) {
       pcaVarprop2 <- pcaVarprop2[1:10,]
     }
+    
     pcaScree <- pcaVarprop2 %>%
       ggplot(aes(x = PC)) +
-      geom_col(aes(y = pct)) +
-      geom_line(aes(y = pct_cum, group = 1)) +
-      geom_point(aes(y = pct_cum)) +
-      labs(x = "Principal component", y = "Fraction variance explained (%)") +
-      scale_y_continuous(n.breaks = 20) +
-      theme_classic(base_size = as.numeric(input$textSizePCA))
-    pcaScree
+      # Add bars with custom appearance
+      geom_col(aes(y = pct), 
+               fill = "#3c8dbc",    # Nice blue color
+               alpha = 0.7,         # Some transparency
+               width = 0.7) +       # Slightly thinner bars
+      # Add cumulative line
+      geom_line(aes(y = pct_cum, group = 1),
+                color = "#e74c3c",  # Contrasting red color
+                linewidth = 1) +    # Slightly thicker line
+      # Add points on the line
+      geom_point(aes(y = pct_cum),
+                 color = "#e74c3c", 
+                 size = 3) +
+      # Add percentage labels on top of bars
+      geom_text(aes(y = pct, 
+                    label = sprintf("%.1f%%", pct)),
+                vjust = -0.5,
+                size = 3.5) +
+      # Better labels
+      labs(title = "Scree Plot",
+           x = "Principal Component",
+           y = "Variance Explained (%)",
+           caption = sprintf("Total variance explained (PC1-PC%s): %.1f%%", 
+                             nrow(pcaVarprop2), 
+                             max(pcaVarprop2$pct_cum))) +
+      # Customize scales
+      scale_y_continuous(
+        limits = c(0, max(pcaVarprop2$pct_cum) * 1.1),  # Add some headroom for labels
+        breaks = seq(0, 100, by = 10),
+        # Add second axis for cumulative percentage
+        sec.axis = sec_axis(~., name = "Cumulative Variance (%)")
+      ) +
+      # Theme customization
+      theme_classic(base_size = as.numeric(input$textSizePCA)) +
+      theme(
+        plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text = element_text(color = "black"),
+        axis.title = element_text(face = "bold"),
+        plot.caption = element_text(hjust = 1, face = "italic"),
+        # Add margin around plot
+        plot.margin = margin(t = 20, r = 20, b = 20, l = 20)
+      )
     
-  } 
-  # , width = 500, height = 400
-  )
+    pcaScree
+  })
   
   output$pcaLoadings <- DT::renderDataTable({
     datatable(top_genes, rownames = F) %>% formatRound("loading", digits = 3)
@@ -377,8 +423,22 @@ observe({
       # )
 
       methylationDF <- methylationList[[sampleIndex]]
+      # methylationDF <- methylationList[[1]]
       
-      methylationHistogram <- methylationDF %>% ggplot(aes(x = Percent_Methylation)) +
+      hist_data <- ggplot_build(
+        ggplot(methylationDF, aes(x = Percent_Methylation)) +
+          stat_bin(binwidth = 10, boundary = 0, closed = "left")
+      )
+      max_count <- max(hist_data$data[[1]]$count)
+      # Round up to nearest 100
+      max_count_rounded <- ceiling(max_count/100) * 100
+      
+      # Define a function to calculate dynamic breaks (adjust as needed)
+      # y_breaks <- pretty(c(0, max_count), n = 10)  # 'pretty()' automatically generates "nice" breaks
+      y_breaks <- pretty(c(0, max_count_rounded), n = 10)
+      
+      methylationHistogram <- methylationDF %>% 
+        ggplot(aes(x = Percent_Methylation)) +
         stat_bin(
           color = "black",
           fill = "#3c8dbc",
@@ -398,8 +458,9 @@ observe({
         x = "% methylation per base",
         y = "Count"
       ) + scale_x_continuous(breaks = seq(0, 100, by = 20)) +
-        # scale_y_continuous(breaks = seq(0, after_stat(round_any(max(count), accuracy = 100, f = ceiling)), by = 100))
-        scale_y_continuous(breaks = seq(0, 900, by = 100)
+        # scale_y_continuous(breaks = seq(0, after_stat(round_any(max(count), accuracy = 100, f = ceiling)), by = 100)
+        scale_y_continuous(breaks = y_breaks, expand = expansion(mult = c(0, 0.1))
+        # scale_y_continuous(breaks = seq(0, 900, by = 100)
       ) + theme(
         plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
         plot.subtitle = element_text(size = 13, face = "bold", hjust = 0.5),
@@ -425,6 +486,14 @@ observe({
         "log10_Coverage" = log(dataMethylRaw$coverage, base = 10)
       )
       
+      # cov_data <- ggplot_build(
+      #   ggplot(methylationDF, aes(x = Percent_Methylation)) +
+      #     stat_bin(binwidth = 10, boundary = 0, closed = "left")
+      # )
+      # max_count <- max(cov_data$data[[1]]$count)
+      # # Round up to nearest 100
+      # max_count_rounded <- ceiling(max_count/100) * 100
+      
       coverageHistogram <- coverageDF %>% ggplot(aes(x = log10_Coverage)) +
         stat_bin(
           color = "black",
@@ -447,19 +516,17 @@ observe({
       ) + scale_x_continuous(breaks = seq(1, ceiling(max(coverageDF$log10_Coverage)), by = 0.5),
                            expand = c(0, 0),
                            limits = c(1,3)
-                           # scale_y_continuous(breaks = seq(0, after_stat(max(count)), by = 100),
-                           #                    expand = c(0, 0),
-                           #                    limits = c(0, after_stat(max(count)))
-        ) + theme(
-          plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
-          plot.subtitle = element_text(size = 13, face = "bold", hjust = 0.5),
-          axis.title.x = element_text(size = 15, vjust = -0.5),
-          # axis.ticks.x = 
-          axis.ticks.length.x = unit(5, "pt"),
-          axis.text.x = element_text(vjust = -0.5),
-          axis.ticks.length.y = unit(5, "pt"),
-          axis.title.y = element_text(size = 15, vjust = 1.5, hjust = 0.5)
-        )
+      ) + scale_y_continuous(expand = expansion(mult = c(0, 0.1))
+      ) + theme(
+        plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 13, face = "bold", hjust = 0.5),
+        axis.title.x = element_text(size = 15, vjust = -0.5),
+        # axis.ticks.x = 
+        axis.ticks.length.x = unit(5, "pt"),
+        axis.text.x = element_text(vjust = -0.5),
+        axis.ticks.length.y = unit(5, "pt"),
+        axis.title.y = element_text(size = 15, vjust = 1.5, hjust = 0.5)
+      )
       
       output$coverageHistogram <- renderPlot({
         coverageHistogram
